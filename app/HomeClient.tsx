@@ -18,7 +18,7 @@ import {
   ListChecks,
 } from "lucide-react";
 import { grammarCards } from "@/data/grammar";
-import Image from "next/image";
+import Image from "@/components/SafeImage";
 import FlipCard from "../components/FlipCard";
 import Link from "next/link";
 import { vocab } from "@/data/vocab";
