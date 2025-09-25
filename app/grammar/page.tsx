@@ -1,0 +1,10 @@
+import { Suspense } from "react";
+import GrammarClient from "./Client";
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div className="p-6">Загрузка…</div>}>
+      <GrammarClient />
+    </Suspense>
+  );
+}
