@@ -14,6 +14,9 @@ concurrency:
   group: "pages"
   cancel-in-progress: true
 
+env:
+  CUSTOM_DOMAIN: maafinn.com
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,13 +28,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
 
       - name: Install deps
         run: npm ci
 
       - name: Build static site (Next.js export)
         run: npm run build
+
+      - name: Create CNAME (custom domain)
+        run: echo "$CUSTOM_DOMAIN" > out/CNAME
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
