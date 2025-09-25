@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  CUSTOM_DOMAIN: maafinn.com
+  CUSTOM_DOMAIN: www.maafinn.com
 
 jobs:
   build:
