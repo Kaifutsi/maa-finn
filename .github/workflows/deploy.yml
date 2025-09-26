@@ -14,18 +14,20 @@ concurrency:
   group: "pages"
   cancel-in-progress: true
 
-# Для GitHub Pages:
-# - не задаём CUSTOM_DOMAIN (чтобы next.config.js НЕ включал headers())
-# - включаем WebLLM без потоков
 env:
+  # кастомный домен
   CUSTOM_DOMAIN: "www.maafinn.com"
   ENABLE_HEADERS: "0"
   CNAME_DOMAIN: "www.maafinn.com"
 
-  NEXT_PUBLIC_AI_DISABLED: "0"   # ← ВКЛЮЧАЕМ ИИ
+  # WebLLM включён и работает без web-threads (совместимо с Pages)
+  NEXT_PUBLIC_AI_DISABLED: "0"
   NEXT_PUBLIC_WASM_THREADS: "1"
-  NEXT_PUBLIC_MLC_MODEL: mlc-ai/Phi-3.1-mini-4k-instruct-q4f32_1-MLC
-  NEXT_PUBLIC_MLC_MODEL_URL: /models/Phi-3.1-mini-4k-instruct-q4f32_1-MLC/
+
+  # ИСПОЛЬЗУЕМ LLAMA — именно она лежит в public/models/
+  NEXT_PUBLIC_MLC_MODEL: Llama-3.2-3B-Instruct-q4f32_1-MLC
+  NEXT_PUBLIC_MLC_MODEL_URL: /models/Llama-3.2-3B-Instruct-q4f32_1-MLC/
+
   NODE_OPTIONS: --max_old_space_size=4096
   NEXT_PUBLIC_BUILD_SHA: ${{ github.sha }}
   NEXT_PUBLIC_BUILD_TIME: ${{ github.run_started_at }}
@@ -47,8 +49,10 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: Download MLC model (Phi-3.1-mini)
-        run: MLC_MODEL_ID="${NEXT_PUBLIC_MLC_MODEL}" npm run download:model
+      # если модель уже в репозитории (public/models/...), ничего качать не нужно
+      # если захочешь качать в CI — раскомментируй и поправь скрипт под Llama
+      # - name: Download MLC model (Llama-3.2-3B)
+      #   run: MLC_MODEL_ID="${NEXT_PUBLIC_MLC_MODEL}" npm run download:model
 
       - name: Strip server routes for static export
         run: |
@@ -57,7 +61,6 @@ jobs:
             echo "Removed app/api for static export"
           fi
 
-      # Разделяем build и export, чтобы видеть, где упало
       - name: Next.js build
         run: npx next build
 
@@ -77,7 +80,6 @@ jobs:
         if: ${{ env.CNAME_DOMAIN != '' }}
         run: echo "${{ env.CNAME_DOMAIN }}" > out/CNAME
 
-      # Если произошла ошибка до этого шага, приложим логи экспорта
       - name: Upload export log on failure
         if: failure()
         uses: actions/upload-artifact@v4
