@@ -14,20 +14,18 @@ concurrency:
   group: "pages"
   cancel-in-progress: true
 
-# ВАЖНО:
-# - CUSTOM_DOMAIN оставляем пустым, чтобы next.config.js НЕ включал headers()
-#   (headers не поддерживаются при output: "export", иначе экспорт падает).
-# - CNAME_DOMAIN используем только для записи CNAME в out/.
+# Для GitHub Pages:
+# - не задаём CUSTOM_DOMAIN (чтобы next.config.js НЕ включал headers())
+# - включаем WebLLM без потоков
 env:
   CUSTOM_DOMAIN: ""
   CNAME_DOMAIN: www.maafinn.com
   NODE_OPTIONS: --max_old_space_size=4096
+  NEXT_TELEMETRY_DISABLED: "1"
   NEXT_PUBLIC_BUILD_SHA: ${{ github.sha }}
   NEXT_PUBLIC_BUILD_TIME: ${{ github.run_started_at }}
   NEXT_PUBLIC_AI_DISABLED: "1"
   NEXT_PUBLIC_YM_ID: ${{ secrets.YM_ID }}
-
-  # WebLLM на GitHub Pages: без потоков и с локальным самохостом модели
   NEXT_PUBLIC_WASM_THREADS: "1"
   NEXT_PUBLIC_MLC_MODEL: mlc-ai/Phi-3.1-mini-4k-instruct-q4f32_1-MLC
   NEXT_PUBLIC_MLC_MODEL_URL: /models/Phi-3.1-mini-4k-instruct-q4f32_1-MLC/
@@ -58,21 +56,35 @@ jobs:
             echo "Removed app/api for static export"
           fi
 
-      - name: Build static site (Next.js export)
-        run: npm run build
+      # Разделяем build и export, чтобы видеть, где упало
+      - name: Next.js build
+        run: npx next build
+
+      - name: Next.js export (static)
+        run: |
+          set -e
+          npx next export 2>&1 | tee export.log
 
       - name: Ensure out dir exists
         run: mkdir -p out
 
       - name: Fail if out is empty
         run: |
-          test -f out/index.html || { echo "No out/index.html after build. Ensure output:'export'."; exit 1; }
+          test -f out/index.html || { echo "No out/index.html after export. Ensure output:'export'."; exit 1; }
 
       - name: Create CNAME (custom domain)
         if: ${{ env.CNAME_DOMAIN != '' }}
         run: echo "${{ env.CNAME_DOMAIN }}" > out/CNAME
 
-      - name: Upload artifact
+      # Если произошла ошибка до этого шага, приложим логи экспорта
+      - name: Upload export log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-export-log
+          path: export.log
+
+      - name: Upload artifact (site)
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./out
