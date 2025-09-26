@@ -53,6 +53,7 @@ export default function AIWidget() {
 
       setA(txt);
     } catch (e: any) {
+      console.error("[AIWidget.ask] error:", e);
       setErr(e?.message || "Ошибка локальной модели");
     } finally {
       setLoading(false);
@@ -69,7 +70,6 @@ export default function AIWidget() {
       </div>
 
       <div className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-        {/* input */}
         <div className="flex items-center gap-2 px-3 py-2 border-b border-slate-200 dark:border-slate-800">
           <Search className="w-4 h-4" />
           <input
@@ -115,7 +115,6 @@ export default function AIWidget() {
         </div>
       </div>
 
-      {/* Быстрые кнопки */}
       <div className="mt-3 flex gap-2 text-xs">
         <button
           onClick={() => ask("Сделай 5 коротких упражнений по теме PASSIIVI")}
@@ -125,7 +124,7 @@ export default function AIWidget() {
         </button>
         <button
           onClick={() => ask("Объясни правило проще для уровня A1")}
-          className="px-3 py-1 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-white/60 dark:hover:bg-slate-900/40"
+          className="px-3 py-1 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-white/60 dark:hover:bg-сlate-900/40"
         >
           Объясни проще
         </button>
