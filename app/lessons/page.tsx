@@ -4444,12 +4444,11 @@ function Flashcards({ title, items }: Extract<WidgetSpec, { kind: "flashcards" }
   const shuffle = () => {
     for (let j = items.length - 1; j > 0; j--) {
       const k = Math.floor(Math.random() * (j + 1));
-      [items[j], items[k]] = [items[k], items[j]]; // ок, мы лишь перемешиваем локальный порядок
+      [items[j], items[k]] = [items[k], items[j]];
     }
     setI(0);
     setShowBack(false);
   };
-
 
   return (
     <div className="mt-4">
@@ -4462,15 +4461,28 @@ function Flashcards({ title, items }: Extract<WidgetSpec, { kind: "flashcards" }
         >
           {hasBack && showBack ? (items[i].back as string) : items[i].front}
         </button>
-        <div className="mt-3 flex gap-2">
-          <button onClick={prev} className="px-3 py-1.5 rounded-xl border">Назад</button>
+
+        {/* ряд кнопок — безопасный на мобиле */}
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2">
+          <button onClick={prev} className="w-full sm:w-auto min-w-0 px-3 py-1.5 rounded-xl border">Назад</button>
+
           {hasBack && (
-            <button onClick={() => setShowBack((v) => !v)} className="px-3 py-1.5 rounded-xl border">
+            <button
+              onClick={() => setShowBack((v) => !v)}
+              className="w-full sm:w-auto min-w-0 px-3 py-1.5 rounded-xl border"
+            >
               {showBack ? "Скрыть перевод" : "Показать перевод"}
             </button>
           )}
-          <button onClick={next} className="px-3 py-1.5 rounded-xl border">Вперёд</button>
-          <button onClick={shuffle} className="ml-auto px-3 py-1.5 rounded-xl border">Перемешать</button>
+
+          <button onClick={next} className="w-full sm:w-auto min-w-0 px-3 py-1.5 rounded-xl border">Вперёд</button>
+
+          <button
+            onClick={shuffle}
+            className="col-span-2 sm:col-auto w-full sm:w-auto min-w-0 sm:ml-auto px-3 py-1.5 rounded-xl border"
+          >
+            Перемешать
+          </button>
         </div>
       </div>
     </div>
@@ -4792,13 +4804,22 @@ function LessonViewer({
 
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <button onClick={onClose} className="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700">← К списку</button>
-          <span className="text-sm opacity-70">{lesson.level} • {lesson.topic}</span>
+    <div className="max-w-3xl mx-auto px-4"> {/* добавил px-4 для безопасных боков */}
+      {/* Верхняя панель */}
+      <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
+          <button
+            onClick={onClose}
+            className="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700"
+          >
+            ← К списку
+          </button>
+          <span className="text-sm opacity-70 truncate">
+            {lesson.level} • {lesson.topic}
+          </span>
         </div>
-        <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+
+        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600 dark:text-slate-300 min-w-0">
           <kbd className="px-1.5 py-0.5 rounded-md border">Esc</kbd> закрыть
           <span className="opacity-40">•</span>
           <kbd className="px-1.5 py-0.5 rounded-md border">←/→</kbd> навигация
@@ -4807,9 +4828,11 @@ function LessonViewer({
         </div>
       </div>
 
-      <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 shadow-sm p-4 md:p-6">
+      <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 shadow-sm p-4 md:p-6 overflow-hidden">
         <h2 className="text-2xl font-extrabold tracking-tight">{lesson.title}</h2>
-        {lesson.summary && <p className="mt-2 text-slate-600 dark:text-slate-300">{lesson.summary}</p>}
+        {lesson.summary && (
+          <p className="mt-2 text-slate-600 dark:text-slate-300">{lesson.summary}</p>
+        )}
 
         {/* Обложка */}
         <div className="mt-4">
@@ -4827,7 +4850,10 @@ function LessonViewer({
         {/* Вводная */}
         {lesson.contentHtml && (
           <div
-            className="mt-6 text-slate-800 dark:text-slate-100 space-y-4 leading-relaxed [&_h4]:text-lg [&_h4]:font-semibold [&_h4]:mt-4 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5"
+            className="mt-6 text-slate-800 dark:text-slate-100 space-y-4 leading-relaxed
+                      [&_h4]:text-lg [&_h4]:font-semibold [&_h4]:mt-4
+                      [&_ul]:list-disc [&_ul]:pl-5
+                      [&_ol]:list-decimal [&_ol]:pl-5"
             dangerouslySetInnerHTML={{ __html: lesson.contentHtml }}
           />
         )}
@@ -4838,10 +4864,7 @@ function LessonViewer({
           const games   = lesson.widgets.filter(w => w.kind !== "imageStrip");
           return (
             <div className="mt-6">
-              {/* сначала показываем три картинки (или сколько есть) */}
               {visuals.map((w, i) => renderWidget(w, i))}
-
-              {/* затем — заголовок и остальные интерактивы */}
               {games.length > 0 && (
                 <>
                   <h3 className="text-xl font-bold mb-2 mt-4">Игры</h3>
@@ -4852,16 +4875,24 @@ function LessonViewer({
           );
         })() : null}
 
-
-        <div className="mt-6 flex items-center justify-between">
-          <button onClick={onPrev} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-white/60 dark:hover:bg-slate-900/40">
+        {/* Низ карточки — адаптивно */}
+        <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <button
+            onClick={onPrev}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-white/60 dark:hover:bg-slate-900/40"
+          >
             <ChevronLeft className="w-4 h-4" /> Предыдущий
           </button>
-          <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+
+          <label className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm cursor-pointer select-none">
             <input type="checkbox" checked={isDone} onChange={onToggleDone} className="accent-emerald-600" />
             Отметить как завершён
           </label>
-          <button onClick={onNext} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-600 text-white hover:bg-sky-700">
+
+          <button
+            onClick={onNext}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-sky-600 text-white hover:bg-sky-700"
+          >
             Следующий <ChevronRight className="w-4 h-4" />
           </button>
         </div>
