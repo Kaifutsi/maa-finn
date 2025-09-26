@@ -12,13 +12,12 @@ export default function AIWidget() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  // UI-совместимость: квот на локальную модель нет
   const [quota] = useState<Quota | null>(null);
   const [paywalled] = useState(false);
 
   const fmtReset = (ts?: number) =>
-    ts
-      ? new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(ts))
-      : "в следующем месяце";
+    ts ? new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(ts)) : "в следующем месяце";
 
   async function ask(prefix?: string) {
     const question = (prefix ? `${prefix}: ` : "") + (q || "");
@@ -36,10 +35,11 @@ export default function AIWidget() {
         "Отвечай кратко и чётко, фокусируясь ТОЛЬКО на финском. " +
         "Приводи примеры на финском; при необходимости можно кратко пояснить по-русски.";
 
+      // ВАЖНО: SDK возвращает объект сразу в res, без поля output
       const res = await engine.chat.completions.create({
         messages: [
           { role: "system", content: sys },
-        { role: "user", content: question },
+          { role: "user", content: question },
         ],
         temperature: 0.5,
         max_tokens: 256,
@@ -47,10 +47,10 @@ export default function AIWidget() {
 
       const txt =
         res?.choices?.[0]?.message?.content ??
-        (res as any)?.output_text ??
+        (res as any)?.output_text ?? // на всякий случай обратно совместимо
         "";
 
-      setA(txt);
+      setA((txt || "").toString().trim());
     } catch (e: any) {
       console.error("[AIWidget.ask] error:", e);
       setErr(e?.message || "Ошибка локальной модели");
@@ -108,9 +108,7 @@ export default function AIWidget() {
             </>
           )}
 
-          {!loading && !a && !err && (
-            <p className="text-slate-500">Попробуй «Как образуется пассив имперфекта?»</p>
-          )}
+          {!loading && !a && !err && <p className="text-slate-500">Попробуй «Как образуется пассив имперфекта?»</p>}
         </div>
       </div>
 
