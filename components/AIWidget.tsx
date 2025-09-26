@@ -12,7 +12,6 @@ export default function AIWidget() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  // для совместимости с прежним UI (квот нет в локальной модели)
   const [quota] = useState<Quota | null>(null);
   const [paywalled] = useState(false);
 
@@ -40,7 +39,7 @@ export default function AIWidget() {
       const res = await engine.chat.completions.create({
         messages: [
           { role: "system", content: sys },
-          { role: "user", content: question },
+        { role: "user", content: question },
         ],
         temperature: 0.5,
         max_tokens: 256,
@@ -124,7 +123,7 @@ export default function AIWidget() {
         </button>
         <button
           onClick={() => ask("Объясни правило проще для уровня A1")}
-          className="px-3 py-1 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-white/60 dark:hover:bg-сlate-900/40"
+          className="px-3 py-1 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-white/60 dark:hover:bg-slate-900/40"
         >
           Объясни проще
         </button>

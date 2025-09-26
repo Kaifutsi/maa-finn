@@ -1,23 +1,45 @@
 // /lib/webllm.ts
-// Надёжная инициализация WebLLM: model_id = basename, явный appConfig.model_list.
+// Надёжный запуск WebLLM на GitHub Pages.
+// 1) Берём basename модели как model_id (то, что ждёт WebLLM).
+// 2) Подтягиваем mlc-chat-config.json из /public/models/... чтобы убедиться, что папка существует.
+// 3) Строим appConfig.model_list сами и передаём в CreateMLCEngine.
+// 4) Детальные логи в консоль, чтобы сразу видеть, что пошло не так.
 
 let cachedPromise: Promise<any> | null = null;
 
-// Полный id, если приходит из env (может быть 'mlc-ai/...'), иначе дефолт
 const RAW_ID =
   process.env.NEXT_PUBLIC_MLC_MODEL ||
   "mlc-ai/Phi-3.1-mini-4k-instruct-q4f32_1-MLC";
 
-// Базовое имя модели (то, что WebLLM ждёт как model_id)
-const MODEL_ID = RAW_ID.split("/").pop()!; // -> "Phi-3.1-mini-4k-instruct-q4f32_1-MLC"
+// basename — это ровно то, что WebLLM использует как model_id
+const MODEL_ID = RAW_ID.split("/").pop()!; // "Phi-3.1-mini-4k-instruct-q4f32_1-MLC"
 
-// Откуда брать файлы модели (папка, размещённая в public/models/...)
 const DEFAULT_MODEL_URL = `/models/${MODEL_ID}/`;
 const MODEL_URL =
   (process.env.NEXT_PUBLIC_MLC_MODEL_URL || "").trim() || DEFAULT_MODEL_URL;
 
-const HF_TOKEN = process.env.NEXT_PUBLIC_HF_TOKEN;
-const WASM_THREADS = process.env.NEXT_PUBLIC_WASM_THREADS; // "1" => без потоков
+const WASM_THREADS = process.env.NEXT_PUBLIC_WASM_THREADS; // "1" на Pages
+
+function log(...args: any[]) {
+  // Немного шума в консоли — помогает при диагностике
+  console.log("[WebLLM]", ...args);
+}
+
+async function ensureLocalModelFolder(): Promise<void> {
+  // Проверяем наличие конфига и токенайзера — частая причина ошибок путей
+  const urls = [
+    `${MODEL_URL}mlc-chat-config.json`,
+    `${MODEL_URL}tokenizer.json`,
+  ];
+  for (const u of urls) {
+    const r = await fetch(u, { method: "HEAD" });
+    if (!r.ok) {
+      throw new Error(
+        `Файл не найден: ${u} (HTTP ${r.status}). Проверь путь MODEL_URL=${MODEL_URL}`
+      );
+    }
+  }
+}
 
 export async function getEngine() {
   if (cachedPromise) return cachedPromise;
@@ -25,34 +47,37 @@ export async function getEngine() {
   cachedPromise = (async () => {
     const webllm = await import("@mlc-ai/web-llm");
 
-    // ЯВНЫЙ список моделей — ключевое: model_id должен совпадать с первым аргументом
+    log("MODEL_ID=", MODEL_ID, "MODEL_URL=", MODEL_URL);
+
+    // 1) Убедимся, что папка модели реально доступна на домене
+    await ensureLocalModelFolder();
+
+    // 2) Жёстко задаём список моделей в нужном формате
     const appConfig: any = {
       model_list: [
         {
-          model_id: MODEL_ID,       // <-- basename
-          model_url: MODEL_URL,     // обе формы поддерживаются в lib
+          model_id: MODEL_ID,     // важно: совпадает с 1-м аргументом CreateMLCEngine
+          model_url: MODEL_URL,   // оба ключа на всякий случай
           base_url: MODEL_URL,
         },
       ],
       useIndexedDBCache: true,
     };
-
     if (WASM_THREADS === "1") {
-      appConfig.wasmNumThreads = 1; // для Pages без COOP/COEP
+      appConfig.wasmNumThreads = 1;
     }
 
     const opts: any = {
       modelUrl: MODEL_URL, // дублируем
       appConfig,
-      // initProgressCallback: (p: any) => console.log("[WebLLM]", p?.text, p?.progress),
+      initProgressCallback: (p: any) => {
+        if (p?.text) log(p.text, p.progress ?? "");
+      },
     };
 
-    if (HF_TOKEN && /^https?:\/\//i.test(MODEL_URL)) {
-      opts.hf_token = HF_TOKEN;
-    }
-
-    // ВАЖНО: первый арг — ТОЧНО такой же, как model_id выше (basename)
+    // 3) Запускаем движок
     const engine = await webllm.CreateMLCEngine(MODEL_ID, opts);
+    log("Engine ready");
     return engine;
   })();
 
@@ -62,5 +87,7 @@ export async function getEngine() {
 export async function preloadWebLLM() {
   try {
     await getEngine();
-  } catch {}
+  } catch (e) {
+    console.error("[WebLLM] preload error:", e);
+  }
 }
