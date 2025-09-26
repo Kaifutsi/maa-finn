@@ -12,14 +12,11 @@ export default function AIWidget() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  // UI-поля оставляем, но локальной квоты нет
   const [quota] = useState<Quota | null>(null);
   const [paywalled] = useState(false);
 
   const fmtReset = (ts?: number) =>
-    ts
-      ? new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(ts))
-      : "в следующем месяце";
+    ts ? new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(ts)) : "в следующем месяце";
 
   async function ask(prefix?: string) {
     const question = (prefix ? `${prefix}: ` : "") + (q || "");
@@ -37,7 +34,7 @@ export default function AIWidget() {
         "Отвечай кратко и чётко, фокусируясь ТОЛЬКО на финском. " +
         "Приводи примеры на финском; при необходимости можно кратко пояснить по-русски.";
 
-      const res: any = await engine.chat.completions.create({
+      const res = await (engine as any).chat.completions.create({
         messages: [
           { role: "system", content: sys },
           { role: "user", content: question },
@@ -46,14 +43,14 @@ export default function AIWidget() {
         max_tokens: 256,
       });
 
-      // Универсальный парсинг ответа (разные версии WebLLM/OpenAI-совместимого API)
-      const raw =
+      console.log("[AIWidget] raw response:", res);
+
+      const txt =
         res?.choices?.[0]?.message?.content ??
-        res?.choices?.[0]?.text ??
-        res?.output_text ??
+        (res as any)?.output_text ??
         "";
 
-      setA(String(raw).trim());
+      setA(txt);
     } catch (e: any) {
       console.error("[AIWidget.ask] error:", e);
       setErr(e?.message || "Ошибка локальной модели");
