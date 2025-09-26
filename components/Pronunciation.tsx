@@ -7,6 +7,7 @@ import { getEngine } from "@/lib/webllm";
 type Quota = { limit: number; used: number; remaining: number; resetAt: number };
 
 export default function Pronunciation() {
+  // офлайн-пул на случай первой загрузки
   const fallbackPool = [
     "Hei! Mitä kuuluu?",
     "Minä puhun suomea vähän.",
@@ -23,7 +24,6 @@ export default function Pronunciation() {
   const [transcript, setTranscript] = useState<string>("");
   const [score, setScore] = useState<number | null>(null);
 
-  // UI-совместимость: квот на локальную модель нет
   const [quota] = useState<Quota | null>(null);
   const [paywalled] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -33,7 +33,9 @@ export default function Pronunciation() {
   const chunksRef = useRef<Blob[]>([]);
 
   const fmtReset = (ts?: number) =>
-    ts ? new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(ts)) : "в следующем месяце";
+    ts
+      ? new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(ts))
+      : "в следующем месяце";
 
   const pct = quota ? Math.min(100, Math.round((quota.used / Math.max(1, quota.limit)) * 100)) : 0;
 
@@ -47,7 +49,7 @@ export default function Pronunciation() {
 
     try {
       const engine = await getEngine();
-      const res = await engine.chat.completions.create({
+      const res: any = await engine.chat.completions.create({
         messages: [
           {
             role: "system",
@@ -62,10 +64,11 @@ export default function Pronunciation() {
 
       const raw =
         res?.choices?.[0]?.message?.content ??
-        (res as any)?.output_text ??
+        res?.choices?.[0]?.text ??
+        res?.output_text ??
         "Hei!";
 
-      const phrase = (raw || "Hei!").replace(/^['\"«»]+|['\"«»]+$/g, "").trim();
+      const phrase = String(raw).replace(/^['\"«»]+|['\"«»]+$/g, "").trim();
       setTarget(phrase || "Hei!");
     } catch (e: any) {
       console.error("[Pronunciation.getPhrase] error:", e);
@@ -75,6 +78,7 @@ export default function Pronunciation() {
     }
   }
 
+  // очень простая «оценка» похожести
   function simpleScore(hyp: string) {
     const norm = (s: string) => s.toLowerCase().replace(/[^a-zäöå\s.]/gi, "").trim();
     const a = norm(target);
@@ -105,7 +109,7 @@ export default function Pronunciation() {
     rec.start();
     setRecording(true);
 
-    // Web Speech API
+    // Web Speech API (если поддерживается)
     // @ts-ignore
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SR) {
@@ -155,7 +159,10 @@ export default function Pronunciation() {
                 Лимит запросов исчерпан. Сброс — <span className="font-medium">{fmtReset(quota.resetAt)}</span>.
               </div>
               <div className="mt-2 h-2 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-[width] duration-500" style={{ width: `${pct}%` }} />
+                <div
+                  className="h-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-[width] duration-500"
+                  style={{ width: `${pct}%` }}
+                />
               </div>
             </div>
           )}
