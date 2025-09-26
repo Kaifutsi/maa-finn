@@ -15,9 +15,15 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # если хочешь кастомный домен — оставь.
-  # если деплоишь только на kaifutsi.github.io/maa-finn — оставь пустым.
+  # Кастомный домен. Если деплоишь ТОЛЬКО на kaifutsi.github.io/maa-finn — оставь пустым.
   CUSTOM_DOMAIN: www.maafinn.com
+  # Больше памяти для сборки Next
+  NODE_OPTIONS: --max_old_space_size=4096
+  # Бейдж билда (можешь вывести в UI через process.env.*)
+  NEXT_PUBLIC_BUILD_SHA: ${{ github.sha }}
+  NEXT_PUBLIC_BUILD_TIME: ${{ github.run_started_at }}
+  # Включаем красивую заглушку для ИИ-виджета/произношения на статику
+  NEXT_PUBLIC_AI_DISABLED: "1"
 
 jobs:
   build:
@@ -35,22 +41,28 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      # Важно: должен происходить СТАТИЧЕСКИЙ экспорт в ./out
-      # Либо next.config.js -> output: 'export' + `npm run build`,
-      # либо отдельный скрипт `npm run export`.
-      - name: Build static site (Next.js export)
+      # ✂️ Убираем серверные роуты (Next export несовместим с app/api/*)
+      - name: Strip server routes for static export
         run: |
-          npm run build
-          # если нужен явный экспорт, раскомментируй строку ниже и убедись, что есть script "export"
-          # npm run export
+          if [ -d "app/api" ]; then
+            rm -rf app/api
+            echo "Removed app/api for static export"
+          fi
 
+      # Next.js с output:'export' положит статик в ./out
+      - name: Build static site (Next.js export)
+        run: npm run build
+
+      # страховка: директория out обязательно существует
       - name: Ensure out dir exists
         run: mkdir -p out
 
+      # защита от "пустого" деплоя (если export не случился)
       - name: Fail if out is empty
         run: |
-          test -f out/index.html || { echo "No out/index.html after build. Make sure you do a static export (Next.js output: 'export' or run 'npm run export')."; exit 1; }
+          test -f out/index.html || { echo "No out/index.html after build. Ensure output:'export'."; exit 1; }
 
+      # создаём CNAME только если домен задан
       - name: Create CNAME (custom domain)
         if: ${{ env.CUSTOM_DOMAIN != '' }}
         run: echo "${{ env.CUSTOM_DOMAIN }}" > out/CNAME
