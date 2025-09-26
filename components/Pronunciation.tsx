@@ -3,11 +3,12 @@
 
 import { useState, useRef } from "react";
 import { Mic, Square, Volume2, RefreshCw, Sparkles } from "lucide-react";
+import { getEngine } from "@/lib/webllm";
 
 type Quota = { limit: number; used: number; remaining: number; resetAt: number };
 
 export default function Pronunciation() {
-  // офлайн-стартовая фраза, чтобы ничего не мигало и не упоминало лимит
+  // офлайн-стартовая фраза — чтобы ничего не мигало
   const fallbackPool = [
     "Hei! Mitä kuuluu?",
     "Minä puhun suomea vähän.",
@@ -24,24 +25,20 @@ export default function Pronunciation() {
   const [transcript, setTranscript] = useState<string>("");
   const [score, setScore] = useState<number | null>(null);
 
-  // лимиты / пэйвол
-  const [quota, setQuota] = useState<Quota | null>(null);
-  const [paywalled, setPaywalled] = useState(false);
+  // для совместимости с твоим UI (здесь квоты по сути OFF)
+  const [quota] = useState<Quota | null>(null);
+  const [paywalled] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [touched, setTouched] = useState(false); // показываем лимит только после первой попытки
+  const [touched, setTouched] = useState(false);
 
-  // режим заглушки (в разработке)
-  const [maintenance, setMaintenance] = useState(
-    process.env.NEXT_PUBLIC_AI_DISABLED === "1"
-  );
+  // Заглушка «в разработке» используем только если WebLLM реально упадёт
+  const [maintenance, setMaintenance] = useState(false);
 
   const mediaRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
   const fmtReset = (ts?: number) =>
-    ts
-      ? new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(ts))
-      : "в следующем месяце";
+    ts ? new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(ts)) : "в следующем месяце";
 
   const pct = quota ? Math.min(100, Math.round((quota.used / Math.max(1, quota.limit)) * 100)) : 0;
 
@@ -52,54 +49,38 @@ export default function Pronunciation() {
     setTranscript("");
     setAudioURL(null);
     setErr(null);
-    setPaywalled(false);
-
-    // в заглушке берём локальную случайную фразу
-    if (maintenance) {
-      setTarget(pickFallback());
-      setLoadingPhrase(false);
-      return;
-    }
 
     try {
-      const r = await fetch("/api/getPhrase", { method: "POST" });
+      const engine = await getEngine();
+      const { output } = await engine.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content:
+              "Ты — преподаватель финского. Сгенерируй ОДНУ короткую фразу уровня A1–A2 ТОЛЬКО на финском. " +
+              "Без перевода и комментариев. Верни строку без кавычек.",
+          },
+          { role: "user", content: "Дай одну краткую повседневную финскую фразу." },
+        ],
+        temperature: 0.8,
+        max_tokens: 30,
+      });
 
-      const ct = r.headers.get("content-type") || "";
-      const isJson = ct.includes("application/json");
-      if (!isJson) {
-        // аккуратно уходим в «в разработке», оставляя офлайн-фразу
-        setMaintenance(true);
-        setLoadingPhrase(false);
-        return;
-      }
+      const phrase = (output?.choices?.[0]?.message?.content || "Hei!")
+        .replace(/^['\"«»]+|['\"«»]+$/g, "")
+        .trim();
 
-      const d = await r.json();
-
-      if (r.status === 402 && d?.paywall) {
-        setPaywalled(true);
-        setQuota({
-          limit: Number(d.limit ?? 5),
-          used: Number(d.used ?? d.quota?.used ?? d.limit ?? 5),
-          remaining: 0,
-          resetAt: Number(d.resetAt ?? d.quota?.resetAt ?? 0),
-        });
-        return;
-      }
-
-      if (!r.ok) throw new Error(d?.error || `HTTP ${r.status}`);
-
-      const phrase = String(d.phrase || "").replace(/^["«»]+|["«»]+$/g, "").trim();
       setTarget(phrase || "Hei!");
-      if (d?.quota) setQuota(d.quota as Quota);
     } catch (e: any) {
-      setErr(e?.message || "Ошибка");
-      // оставляем fallback-фразу
+      setErr(e?.message || "Ошибка локальной модели");
+      // fallback остаётся прежним target
+      setMaintenance(true); // чтобы показать мягкую карточку, если совсем сломано
     } finally {
       setLoadingPhrase(false);
     }
   }
 
-  // простая «оценка» похожести
+  // очень простая «оценка» похожести — как было
   function simpleScore(hyp: string) {
     const norm = (s: string) => s.toLowerCase().replace(/[^a-zäöå\s.]/gi, "").trim();
     const a = norm(target);
@@ -144,21 +125,11 @@ export default function Pronunciation() {
       };
       r.start();
 
-      // ✅ сохраняем исходный onstop с правильным this
-      const prevOnStop =
-        (rec.onstop as ((this: MediaRecorder, ev: Event) => any) | null) ?? null;
-
+      const prevOnStop = (rec.onstop as ((this: MediaRecorder, ev: Event) => any) | null) ?? null;
       rec.onstop = (e: Event) => {
-        try {
-          r.stop();
-        } catch {
-          /* noop */
-        }
-        // записываем blob (тот же код, что в базовом onstop)
+        try { r.stop(); } catch {}
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         setAudioURL(URL.createObjectURL(blob));
-
-        // ✅ вызываем предыдущий обработчик с корректным this и событием
         prevOnStop?.call(rec, e);
       };
     }
@@ -177,7 +148,7 @@ export default function Pronunciation() {
     window.speechSynthesis.speak(u);
   }
 
-  // --- Режим «в разработке» (красиво) ---
+  // --- Заглушка «в разработке» (если WebLLM не подхватился) ---
   if (maintenance) {
     return (
       <section className="max-w-6xl mx-auto px-4 pb-14">
@@ -189,23 +160,16 @@ export default function Pronunciation() {
             </span>
             <h3 className="text-2xl font-extrabold mt-2">Произношение с ИИ</h3>
             <p className="opacity-80 mt-2">
-              Мы допиливаем качество подсказок и проверку произношения. Пока потренируйся на готовых
-              фразах и записи.
+              Локальная модель не загрузилась. Обнови страницу — попробуем ещё раз. Пока можно тренироваться на офлайн-фразах.
             </p>
 
             <div className="flex flex-wrap gap-3 mt-4">
               {!recording ? (
-                <button
-                  onClick={start}
-                  className="px-4 py-2 rounded-2xl bg-sky-600 text-white flex items-center gap-2"
-                >
+                <button onClick={start} className="px-4 py-2 rounded-2xl bg-sky-600 text-white flex items-center gap-2">
                   <Mic className="w-4 h-4" /> Записать
                 </button>
               ) : (
-                <button
-                  onClick={stop}
-                  className="px-4 py-2 rounded-2xl bg-red-600 text-white flex items-center gap-2"
-                >
+                <button onClick={stop} className="px-4 py-2 rounded-2xl bg-red-600 text-white flex items-center gap-2">
                   <Square className="w-4 h-4" /> Стоп
                 </button>
               )}
@@ -217,7 +181,6 @@ export default function Pronunciation() {
                 <Volume2 className="w-4 h-4" /> Послушать пример
               </button>
 
-              {/* офлайн смена фразы */}
               <button
                 onClick={() => setTarget(pickFallback())}
                 disabled={loadingPhrase || recording}
@@ -231,17 +194,9 @@ export default function Pronunciation() {
             <p className="mt-4 text-sm">
               Hei! Sano lause: <i>{loadingPhrase ? "генерируем…" : `“${target}”`}</i>
             </p>
-            {transcript && (
-              <p className="mt-2 text-sm opacity-80">Распознано: “{transcript}”</p>
-            )}
-            {score !== null && (
-              <p className="mt-1 text-sm">
-                Оценка: <b>{score}</b>/100
-              </p>
-            )}
-            <p className="mt-3 text-xs text-slate-500">
-              Подсказка: «Новая фраза» пока берёт примеры из офлайн-набора.
-            </p>
+            {transcript && <p className="mt-2 text-sm opacity-80">Распознано: “{transcript}”</p>}
+            {score !== null && <p className="mt-1 text-sm">Оценка: <b>{score}</b>/100</p>}
+            <p className="mt-3 text-xs text-slate-500">Подсказка: «Новая фраза» пока берёт примеры из офлайн-набора.</p>
           </div>
 
           <div className="rounded-2xl bg-sky-50/60 dark:bg-slate-800/40 border border-sky-200/60 dark:border-slate-700 p-4 min-h-[160px]">
@@ -258,7 +213,7 @@ export default function Pronunciation() {
     );
   }
 
-  // --- Обычный режим (API доступен) ---
+  // --- Обычный режим (WebLLM доступен) ---
   return (
     <section className="max-w-6xl mx-auto px-4 pb-14">
       <div className="rounded-3xl p-6 md:p-10 bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow grid md:grid-cols-[1.2fr,1fr] gap-6 items-center">
@@ -266,29 +221,14 @@ export default function Pronunciation() {
           <h3 className="text-2xl font-extrabold">Произношение с ИИ</h3>
           <p className="opacity-80 mt-2">Каждый раз — новая финская фраза уровня A1–A2.</p>
 
-          {/* Пэйвол и прогресс показываем только после первой попытки (touched) */}
+          {/* UI квоты оставлен для совместимости, но он выключен */}
           {touched && paywalled && quota && (
             <div className="mt-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/40 p-4">
               <div className="text-sm text-slate-700 dark:text-slate-300">
-                Лимит запросов исчерпан. Сброс —{" "}
-                <span className="font-medium">{fmtReset(quota.resetAt)}</span>.
+                Лимит запросов исчерпан. Сброс — <span className="font-medium">{fmtReset(quota.resetAt)}</span>.
               </div>
               <div className="mt-2 h-2 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-[width] duration-500"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-              <div className="mt-2 text-xs text-slate-500 flex items-center justify-between">
-                <span>
-                  Использовано: {quota.used}/{quota.limit}
-                </span>
-                <button
-                  onClick={() => alert("PRO скоро")}
-                  className="underline underline-offset-2 hover:no-underline"
-                >
-                  Узнать про PRO
-                </button>
+                <div className="h-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-[width] duration-500" style={{ width: `${pct}%` }} />
               </div>
             </div>
           )}
@@ -301,17 +241,11 @@ export default function Pronunciation() {
 
           <div className="flex flex-wrap gap-3 mt-4">
             {!recording ? (
-              <button
-                onClick={start}
-                className="px-4 py-2 rounded-2xl bg-sky-600 text-white flex items-center gap-2"
-              >
+              <button onClick={start} className="px-4 py-2 rounded-2xl bg-sky-600 text-white flex items-center gap-2">
                 <Mic className="w-4 h-4" /> Записать
               </button>
             ) : (
-              <button
-                onClick={stop}
-                className="px-4 py-2 rounded-2xl bg-red-600 text-white flex items-center gap-2"
-              >
+              <button onClick={stop} className="px-4 py-2 rounded-2xl bg-red-600 text-white flex items-center gap-2">
                 <Square className="w-4 h-4" /> Стоп
               </button>
             )}
@@ -337,25 +271,7 @@ export default function Pronunciation() {
             Hei! Sano lause: <i>{loadingPhrase ? "генерируем…" : `“${target}”`}</i>
           </p>
           {transcript && <p className="mt-2 text-sm opacity-80">Распознано: “{transcript}”</p>}
-          {score !== null && (
-            <p className="mt-1 text-sm">
-              Оценка: <b>{score}</b>/100
-            </p>
-          )}
-
-          {touched && quota && !paywalled && (
-            <>
-              <div className="mt-3 h-2 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-[width] duration-500"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-              <div className="mt-1 text-xs text-slate-500">
-                Осталось: {quota.remaining} / {quota.limit} • Сброс {fmtReset(quota.resetAt)}
-              </div>
-            </>
-          )}
+          {score !== null && <p className="mt-1 text-sm">Оценка: <b>{score}</b>/100</p>}
         </div>
 
         <div className="rounded-2xl bg-sky-50/60 dark:bg-slate-800/40 border border-sky-200/60 dark:border-slate-700 p-4 min-h-[160px]">
