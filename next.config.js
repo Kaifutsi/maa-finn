@@ -1,8 +1,10 @@
 /** @type {import('next').NextConfig} */
 const repo = "maa-finn";
-// В CI стоит CUSTOM_DOMAIN=www.maafinn.com → без basePath/assetPrefix и с заголовками.
-// Если деплоишь на GitHub Pages (без кастомного домена) — CUSTOM_DOMAIN НЕ задан.
+
+// Если деплоим на кастомный домен (www.maafinn.com) — нужен пустой basePath.
+// ВКЛЮЧАТЬ заголовки только если явно разрешено переменной ENABLE_HEADERS=1 (например, на Vercel).
 const usingCustomDomain = !!process.env.CUSTOM_DOMAIN;
+const enableHeaders = process.env.ENABLE_HEADERS === "1";
 
 const nextConfig = {
   output: "export",
@@ -13,8 +15,7 @@ const nextConfig = {
   assetPrefix: usingCustomDomain ? "" : `/${repo}/`,
 };
 
-// ⚠️ Заголовки доступны ТОЛЬКО при кастомном домене (Vercel).
-if (usingCustomDomain) {
+if (enableHeaders) {
   nextConfig.headers = async () => ([
     {
       source: "/:path*",
