@@ -14,13 +14,23 @@ concurrency:
   group: "pages"
   cancel-in-progress: true
 
+# ВАЖНО:
+# - CUSTOM_DOMAIN оставляем пустым, чтобы next.config.js НЕ включал headers()
+#   (headers не поддерживаются при output: "export", иначе экспорт падает).
+# - CNAME_DOMAIN используем только для записи CNAME в out/.
 env:
-  CUSTOM_DOMAIN: www.maafinn.com
+  CUSTOM_DOMAIN: ""
+  CNAME_DOMAIN: www.maafinn.com
   NODE_OPTIONS: --max_old_space_size=4096
   NEXT_PUBLIC_BUILD_SHA: ${{ github.sha }}
   NEXT_PUBLIC_BUILD_TIME: ${{ github.run_started_at }}
   NEXT_PUBLIC_AI_DISABLED: "1"
   NEXT_PUBLIC_YM_ID: ${{ secrets.YM_ID }}
+
+  # WebLLM на GitHub Pages: без потоков и с локальным самохостом модели
+  NEXT_PUBLIC_WASM_THREADS: "1"
+  NEXT_PUBLIC_MLC_MODEL: mlc-ai/Phi-3.1-mini-4k-instruct-q4f32_1-MLC
+  NEXT_PUBLIC_MLC_MODEL_URL: /models/Phi-3.1-mini-4k-instruct-q4f32_1-MLC/
 
 jobs:
   build:
@@ -37,6 +47,9 @@ jobs:
 
       - name: Install deps
         run: npm ci
+
+      - name: Download MLC model (Phi-3.1-mini)
+        run: MLC_MODEL_ID="${NEXT_PUBLIC_MLC_MODEL}" npm run download:model
 
       - name: Strip server routes for static export
         run: |
@@ -56,8 +69,8 @@ jobs:
           test -f out/index.html || { echo "No out/index.html after build. Ensure output:'export'."; exit 1; }
 
       - name: Create CNAME (custom domain)
-        if: ${{ env.CUSTOM_DOMAIN != '' }}
-        run: echo "${{ env.CUSTOM_DOMAIN }}" > out/CNAME
+        if: ${{ env.CNAME_DOMAIN != '' }}
+        run: echo "${{ env.CNAME_DOMAIN }}" > out/CNAME
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
