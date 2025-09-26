@@ -23,7 +23,7 @@ type Card = {
   backExamples?: string[];
 };
 
-// мини-FlipCard без 3D
+// мини-FlipCard без 3D, но с надёжным кликом/фокусом
 function FlipCard({
   className = "",
   back,
@@ -34,27 +34,40 @@ function FlipCard({
   children: React.ReactNode;
 }) {
   const [flipped, setFlipped] = useState(false);
+
   const toggle = () => setFlipped((v) => !v);
-  const onKey: React.KeyboardEventHandler<HTMLDivElement> = (e) => {
+
+  const onKey: React.KeyboardEventHandler<HTMLButtonElement> = (e) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       toggle();
     }
   };
+
   return (
-    <div
-      className={className}
-      role="button"
-      tabIndex={0}
-      onClick={toggle}
-      onKeyDown={onKey}
+    <button
+      type="button"
+      className={[
+        "text-left w-full h-full cursor-pointer select-none",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 rounded-3xl",
+        className,
+      ].join(" ")}
       aria-pressed={flipped}
+      onClick={(e) => {
+        // если клик по интерактивному потомку — не переворачиваем
+        const t = e.target as HTMLElement;
+        const isInteractive =
+          t.closest("button, a, input, textarea, select, [role='switch'], [role='tab']") !== null;
+        if (isInteractive) return;
+        toggle();
+      }}
+      onKeyDown={onKey}
     >
       <div className="h-full">
         <div className={flipped ? "hidden" : "block h-full"}>{children}</div>
         <div className={flipped ? "block h-full" : "hidden"}>{back}</div>
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -168,10 +181,10 @@ function PageInner() {
   useEffect(() => {
     if (!sentinelRef.current) return;
     const io = new IntersectionObserver(
-      (e) => {
-        if (e[0].isIntersecting && canLoadMore) setPage((p) => p + 1);
+      (entries) => {
+        if (entries[0].isIntersecting && canLoadMore) setPage((p) => p + 1);
       },
-      { rootMargin: "600px 0px" }
+      { root: null, rootMargin: "200px 0px", threshold: 0.01 }
     );
     io.observe(sentinelRef.current);
     return () => io.disconnect();
@@ -194,9 +207,15 @@ function PageInner() {
         </p>
       </section>
 
-      {/* Фильтры (sticky) */}
-      <div className="sticky top-0 z-20 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-slate-900/40">
-        <section className="max-w-6xl mx-auto px-4 py-3 grid gap-3 md:grid-cols-[1fr,auto,auto,auto]">
+      {/* Фильтры (sticky) — безопасный слой, чтобы не перекрывал скролл */}
+      <div className="sticky top-0 z-20" style={{ backfaceVisibility: "hidden" }}>
+        <section
+          className="max-w-6xl mx-auto px-4 py-3 grid gap-3 md:grid-cols-[1fr,auto,auto,auto]
+                     bg-white/70 dark:bg-slate-900/50
+                     supports-[backdrop-filter]:backdrop-blur
+                     supports-[backdrop-filter]:bg-white/50
+                     dark:supports-[backdrop-filter]:bg-slate-900/40"
+        >
           <input
             value={q}
             onChange={(e) => {
@@ -308,15 +327,15 @@ function PageInner() {
               className="group h-full rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 shadow-sm transition duration-200 hover:shadow-md hover:-translate-y-0.5"
               back={
                 <div className="flex h-full flex-col">
-                {backSrc && (
-                  <Image
-                    src={backSrc}
-                    alt={card.backTitle ?? card.title}
-                    width={900}
-                    height={520}
-                    className="w-full h-auto object-cover rounded-t-3xl transition group-hover:scale-[1.01]"
-                  />
-                )}
+                  {backSrc && (
+                    <Image
+                      src={backSrc}
+                      alt={card.backTitle ?? card.title}
+                      width={900}
+                      height={520}
+                      className="w-full h-auto object-cover rounded-t-3xl transition group-hover:scale-[1.01]"
+                    />
+                  )}
                   <div className="p-4 flex-1 flex flex-col">
                     <div className="flex items-center gap-2">
                       <h4 className="font-semibold text-lg leading-snug line-clamp-2">
@@ -404,7 +423,9 @@ function PageInner() {
                       ))}
                     </ul>
                   ) : (
-                    <div className="mt-auto text-xs text-slate-500">Нажми, чтобы открыть пояснения ↺</div>
+                    <div className="mt-auto text-xs text-slate-500">
+                      Нажми, чтобы открыть пояснения ↺
+                    </div>
                   )}
                 </div>
               </div>
@@ -458,15 +479,15 @@ function PageInner() {
           />
           <div className="absolute inset-0 flex items-center justify-center p-4">
             <div className="w-full max-w-2xl rounded-3xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl">
-            {modalSrc && (
-              <Image
-                src={modalSrc}
-                alt={open.backTitle ?? open.title}
-                width={1200}
-                height={700}
-                className="w-full h-auto object-cover"
-              />
-            )}
+              {modalSrc && (
+                <Image
+                  src={modalSrc}
+                  alt={open.backTitle ?? open.title}
+                  width={1200}
+                  height={700}
+                  className="w-full h-auto object-cover"
+                />
+              )}
               <div className="p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
