@@ -1,8 +1,9 @@
 // /components/AIWidget.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { MessageCircle, Search, Sparkles } from "lucide-react";
+import { getEngine } from "@/lib/webllm";
 
 type Quota = { limit: number; used: number; remaining: number; resetAt: number };
 
@@ -11,26 +12,22 @@ export default function AIWidget() {
   const [a, setA] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [quota, setQuota] = useState<Quota | null>(null);
-  const [paywalled, setPaywalled] = useState(false);
 
-  // Режим «в разработке» — включается:
-  // 1) флагом окружения NEXT_PUBLIC_AI_DISABLED=1
-  // 2) если апстрим вернул не-JSON (HTML/текст)
-  const [maintenance, setMaintenance] = useState(
-    process.env.NEXT_PUBLIC_AI_DISABLED === "1"
-  );
+  // Эти поля остаются для совместимости с твоим UI,
+  // но при WebLLM серверной квоты нет — они всегда пустые/false.
+  const [quota] = useState<Quota | null>(null);
+  const [paywalled] = useState(false);
+
+  // Флаг «в разработке» теперь можно отключить — локальная модель всегда доступна
+  const [maintenance, setMaintenance] = useState(false);
 
   const fmtReset = (ts?: number) => {
     if (!ts) return "в следующем месяце";
-    return new Intl.DateTimeFormat("ru-RU", {
-      day: "numeric",
-      month: "long",
-    }).format(new Date(ts));
+    return new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(ts));
   };
 
   async function ask(prefix?: string) {
-    if (maintenance) return; // в заглушке не дергаем API
+    if (maintenance) return;
 
     const question = (prefix ? `${prefix}: ` : "") + (q || "");
     if (!question.trim()) return;
@@ -38,56 +35,39 @@ export default function AIWidget() {
     setLoading(true);
     setErr(null);
     setA("");
-    setQuota(null);
-    setPaywalled(false);
 
     try {
-      const r = await fetch("/api/ask", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
+      const engine = await getEngine();
+
+      const sys = [
+        "Ты — дружелюбный преподаватель финского языка (Suomen kieli).",
+        "Отвечай кратко и чётко, фокусируясь ТОЛЬКО на финском.",
+        "Приводи примеры на финском; при необходимости можно кратко пояснить по-русски."
+      ].join(" ");
+
+      // WebLLM имеет OpenAI-подобный интерфейс
+      const { output } = await engine.chat.completions.create({
+        messages: [
+          { role: "system", content: sys },
+          { role: "user", content: question },
+        ],
+        temperature: 0.5,
+        max_tokens: 256,
       });
 
-      const ct = r.headers.get("content-type") || "";
-      const isJson = ct.includes("application/json");
-
-      // если апстрим упал и прислал HTML — включаем красивую заглушку
-      if (!isJson) {
-        setMaintenance(true);
-        return;
-      }
-
-      const d = await r.json();
-
-      if (r.status === 402 && d?.paywall) {
-        setPaywalled(true);
-        setQuota({
-          limit: Number(d.limit ?? 5),
-          used: Number(d.used ?? d.limit ?? 5),
-          remaining: 0,
-          resetAt: Number(d.resetAt ?? 0),
-        });
-        return;
-      }
-
-      if (!r.ok) throw new Error(d?.error || `HTTP ${r.status}`);
-
-      if (d?.quota) setQuota(d.quota as Quota);
-      setA(d.answer ?? "");
+      setA(output?.choices?.[0]?.message?.content || "");
     } catch (e: any) {
-      // если уже включили maintenance — не показываем «красную» ошибку
-      if (!maintenance) setErr(e?.message || "Ошибка");
+      setErr(e?.message || "Ошибка локальной модели");
+      // если уж совсем сломалось — покажем заглушку
+      setMaintenance(true);
     } finally {
       setLoading(false);
     }
   }
 
-  // проценты для прогресс-бара
-  const pct = quota
-    ? Math.min(100, Math.round((quota.used / Math.max(1, quota.limit)) * 100))
-    : 0;
+  const pct = quota ? Math.min(100, Math.round((quota.used / Math.max(1, quota.limit)) * 100)) : 0;
 
-  // --------- Рендер заглушки «В разработке» ---------
+  // --------- Рендер заглушки «В разработке» (на случай критичных ошибок) ---------
   if (maintenance) {
     return (
       <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 p-5 shadow-sm">
@@ -107,32 +87,22 @@ export default function AIWidget() {
               Скоро здесь будет умный помощник по финскому 💙
             </h3>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-              Мы шлифуем ответы и качество подсказок. Загляни чуть позже —
-              появятся объяснения, упражнения и примеры на финском.
+              Перезагрузи страницу — попробуем подгрузить офлайн-модель заново.
             </p>
           </div>
 
           <div className="p-4 md:p-5 bg-white/60 dark:bg-slate-900/40">
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-white/70 dark:bg-slate-900/50 text-slate-500">
               <Search className="w-4 h-4" />
-              <input
-                className="w-full bg-transparent outline-none text-sm"
-                placeholder="Kysymys: Как образуется пассив имперфекта?"
-                disabled
-              />
+              <input className="w-full bg-transparent outline-none text-sm" placeholder="Kysymys: Как образуется пассив имперфекта?" disabled />
             </div>
-            <p className="mt-3 text-xs text-slate-500">
-              Подсказка: пока можно пользоваться{" "}
-              <span className="font-medium">карточками, уроками и тестами</span>
-              — они работают полностью.
-            </p>
           </div>
         </div>
       </div>
     );
   }
 
-  // --------- Обычный режим ---------
+  // --------- Основной рендер ---------
   return (
     <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 p-5 shadow-sm">
       <div className="flex items-center gap-2 mb-2">
@@ -157,57 +127,23 @@ export default function AIWidget() {
         <div className="p-3 text-sm space-y-3">
           {loading && <p className="animate-pulse">Думаю…</p>}
 
-          {/* Пэйвол — спокойная карточка */}
-          {paywalled && quota && (
-            <div
-              className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/40 p-3"
-              aria-live="polite"
-            >
-              <div className="text-[13px] text-slate-700 dark:text-slate-300">
-                Доступ к ИИ исчерпан на этот месяц. Сброс:{" "}
-                <span className="font-medium">{fmtReset(quota.resetAt)}</span>.
-              </div>
-              <div className="mt-2 h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-sky-500 to-indigo-600"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-              <div className="mt-2 flex items-center justify-between text-[12px] text-slate-500">
-                <span>
-                  Использовано: {quota.used} / {quota.limit}
-                </span>
-                <button
-                  onClick={() => alert("PRO скоро")}
-                  className="underline underline-offset-2 hover:no-underline"
-                >
-                  Узнать про PRO
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Обычная ошибка */}
+          {/* Ошибка */}
           {err && !paywalled && (
             <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/40 p-2 text-[13px] text-slate-700 dark:text-slate-300">
               {err}
             </div>
           )}
 
-          {/* Ответ + индикатор остатка */}
+          {/* Ответ */}
           {!loading && !paywalled && !err && a && (
             <>
               {quota && (
                 <>
                   <div className="h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-sky-500 to-indigo-600"
-                      style={{ width: `${pct}%` }}
-                    />
+                    <div className="h-full bg-gradient-to-r from-sky-500 to-indigo-600" style={{ width: `${pct}%` }} />
                   </div>
                   <div className="text-[12px] text-slate-500 mt-1">
-                    Осталось запросов: {quota.remaining} / {quota.limit} • Сброс{" "}
-                    {fmtReset(quota.resetAt)}
+                    Осталось запросов: {quota.remaining} / {quota.limit} • Сброс {fmtReset(quota.resetAt)}
                   </div>
                 </>
               )}
@@ -218,9 +154,7 @@ export default function AIWidget() {
           )}
 
           {!loading && !a && !err && !paywalled && (
-            <p className="text-slate-500">
-              Попробуй «Как образуется пассив имперфекта?»
-            </p>
+            <p className="text-slate-500">Попробуй «Как образуется пассив имперфекта?»</p>
           )}
         </div>
       </div>
@@ -228,9 +162,7 @@ export default function AIWidget() {
       {/* Быстрые кнопки */}
       <div className="mt-3 flex gap-2 text-xs">
         <button
-          onClick={() =>
-            ask("Сделай 5 коротких упражнений по теме PASSIIVI")
-          }
+          onClick={() => ask("Сделай 5 коротких упражнений по теме PASSIIVI")}
           className="px-3 py-1 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-white/60 dark:hover:bg-slate-900/40"
         >
           Упражнения
