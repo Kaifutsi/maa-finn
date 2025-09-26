@@ -5063,46 +5063,77 @@ function PageInner() {
         </p>
 
         {/* Поиск/фильтры */}
-        <div className="mt-6 grid gap-3 md:grid-cols-[1fr,150px,220px,auto]">
-          <div className="relative">
+        <div className="mt-6 grid gap-3 grid-cols-1 md:grid-cols-[1fr,150px,220px,auto]">
+          {/* Поиск */}
+          <div className="relative min-w-0">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
             <input
               ref={searchRef}
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Поиск: дни недели, числа, страны…  (нажми «/»)"
-              className="w-full pl-9 pr-3 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60 outline-none focus:ring-2 ring-sky-500"
+              className="w-full min-w-0 pl-9 pr-3 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60 outline-none focus:ring-2 ring-sky-500"
               aria-label="Поиск по урокам"
             />
           </div>
 
-          <select value={level} onChange={(e) => setLevel(e.target.value)} className="px-4 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60" aria-label="Фильтр по уровню">
+          {/* Фильтр по уровню */}
+          <select
+            value={level}
+            onChange={(e) => setLevel(e.target.value)}
+            className="w-full md:w-auto min-w-0 px-4 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60"
+            aria-label="Фильтр по уровню"
+          >
             <option value="">Все уровни</option>
-            {levels.map((l) => (<option key={l} value={l}>{l}</option>))}
+            {levels.map((l) => (
+              <option key={l} value={l}>
+                {l}
+              </option>
+            ))}
           </select>
 
-          <select value={playlist} onChange={(e) => setPlaylist(e.target.value)} className="px-4 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60" aria-label="Фильтр по плейлисту">
+          {/* Фильтр по плейлисту */}
+          <select
+            value={playlist}
+            onChange={(e) => setPlaylist(e.target.value)}
+            className="w-full md:w-auto min-w-0 px-4 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60"
+            aria-label="Фильтр по плейлисту"
+          >
             <option value="">Все плейлисты</option>
-            {PLAYLISTS.map((p) => (<option key={p.id} value={p.id}>{p.title}</option>))}
+            {PLAYLISTS.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.title}
+              </option>
+            ))}
           </select>
 
-          <div className="flex items-center gap-2">
-            <select value={sort} onChange={(e) => setSort(e.target.value as any)} className="px-3 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60" aria-label="Сортировка">
+          {/* Сортировка + кнопки */}
+          <div className="flex flex-wrap md:flex-nowrap items-center gap-2 min-w-0">
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as any)}
+              className="w-full md:w-auto min-w-0 px-3 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60"
+              aria-label="Сортировка"
+            >
               <option value="relevance">По релевантности</option>
               <option value="alpha">По алфавиту</option>
               <option value="shuffle">Случайно</option>
             </select>
+
             <button
-              className={`px-3 py-2 rounded-2xl border text-sm inline-flex items-center gap-2 ${
-                onlyUndone ? "border-amber-400 bg-amber-50 text-amber-700 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200" : "border-slate-300 dark:border-slate-700"
+              className={`w-full md:w-auto px-3 py-2 rounded-2xl border text-sm inline-flex items-center gap-2 ${
+                onlyUndone
+                  ? "border-amber-400 bg-amber-50 text-amber-700 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200"
+                  : "border-slate-300 dark:border-slate-700"
               }`}
               onClick={() => setOnlyUndone((v) => !v)}
               title="Только незавершённые (F)"
             >
               <ListChecks className="w-4 h-4" /> Незавершённые
             </button>
+
             <button
-              className="px-3 py-2 rounded-2xl border text-sm inline-flex items-center gap-2 border-slate-300 dark:border-slate-700 hover:bg-white/60 dark:hover:bg-slate-900/40"
+              className="w-full md:w-auto px-3 py-2 rounded-2xl border text-sm inline-flex items-center gap-2 border-slate-300 dark:border-slate-700 hover:bg-white/60 dark:hover:bg-slate-900/40"
               onClick={() => setSort("shuffle")}
               title="Перемешать (R)"
             >
