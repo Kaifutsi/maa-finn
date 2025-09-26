@@ -7,7 +7,6 @@ import { getEngine } from "@/lib/webllm";
 type Quota = { limit: number; used: number; remaining: number; resetAt: number };
 
 export default function Pronunciation() {
-  // офлайн-стартовая фраза — чтобы ничего не мигало
   const fallbackPool = [
     "Hei! Mitä kuuluu?",
     "Minä puhun suomea vähän.",
@@ -24,7 +23,6 @@ export default function Pronunciation() {
   const [transcript, setTranscript] = useState<string>("");
   const [score, setScore] = useState<number | null>(null);
 
-  // для совместимости с твоим UI (квот нет)
   const [quota] = useState<Quota | null>(null);
   const [paywalled] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -55,8 +53,7 @@ export default function Pronunciation() {
           {
             role: "system",
             content:
-              "Ты — преподаватель финского. Сгенерируй ОДНУ короткую фразу уровня A1–A2 ТОЛЬКО на финском. " +
-              "Без перевода и комментариев. Верни строку без кавычек.",
+              "Ты — преподаватель финского. Сгенерируй ОДНУ короткую фразу уровня A1–A2 ТОЛЬКО на финском. Без перевода и комментариев. Верни строку без кавычек.",
           },
           { role: "user", content: "Дай одну краткую повседневную финскую фразу." },
         ],
@@ -72,13 +69,13 @@ export default function Pronunciation() {
       const phrase = raw.replace(/^['\"«»]+|['\"«»]+$/g, "").trim();
       setTarget(phrase || "Hei!");
     } catch (e: any) {
+      console.error("[Pronunciation.getPhrase] error:", e);
       setErr(e?.message || "Ошибка локальной модели");
     } finally {
       setLoadingPhrase(false);
     }
   }
 
-  // простая «оценка» похожести
   function simpleScore(hyp: string) {
     const norm = (s: string) => s.toLowerCase().replace(/[^a-zäöå\s.]/gi, "").trim();
     const a = norm(target);
@@ -109,7 +106,7 @@ export default function Pronunciation() {
     rec.start();
     setRecording(true);
 
-    // Web Speech API (если доступен)
+    // Web Speech API
     // @ts-ignore
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SR) {
@@ -159,7 +156,7 @@ export default function Pronunciation() {
                 Лимит запросов исчерпан. Сброс — <span className="font-medium">{fmtReset(quota.resetAt)}</span>.
               </div>
               <div className="mt-2 h-2 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-[width] duration-500" style={{ width: `${pct}%` }} />
+                <div className="h-full bg-gradient-to-r from-сky-500 to-indigo-600 transition-[width] duration-500" style={{ width: `${pct}%` }} />
               </div>
             </div>
           )}
