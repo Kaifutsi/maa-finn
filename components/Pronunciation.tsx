@@ -23,6 +23,7 @@ export default function Pronunciation() {
   const [transcript, setTranscript] = useState<string>("");
   const [score, setScore] = useState<number | null>(null);
 
+  // UI-совместимость: квот на локальную модель нет
   const [quota] = useState<Quota | null>(null);
   const [paywalled] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -32,9 +33,7 @@ export default function Pronunciation() {
   const chunksRef = useRef<Blob[]>([]);
 
   const fmtReset = (ts?: number) =>
-    ts
-      ? new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(ts))
-      : "в следующем месяце";
+    ts ? new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(ts)) : "в следующем месяце";
 
   const pct = quota ? Math.min(100, Math.round((quota.used / Math.max(1, quota.limit)) * 100)) : 0;
 
@@ -66,7 +65,7 @@ export default function Pronunciation() {
         (res as any)?.output_text ??
         "Hei!";
 
-      const phrase = raw.replace(/^['\"«»]+|['\"«»]+$/g, "").trim();
+      const phrase = (raw || "Hei!").replace(/^['\"«»]+|['\"«»]+$/g, "").trim();
       setTarget(phrase || "Hei!");
     } catch (e: any) {
       console.error("[Pronunciation.getPhrase] error:", e);
@@ -156,7 +155,7 @@ export default function Pronunciation() {
                 Лимит запросов исчерпан. Сброс — <span className="font-medium">{fmtReset(quota.resetAt)}</span>.
               </div>
               <div className="mt-2 h-2 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-сky-500 to-indigo-600 transition-[width] duration-500" style={{ width: `${pct}%` }} />
+                <div className="h-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-[width] duration-500" style={{ width: `${pct}%` }} />
               </div>
             </div>
           )}
