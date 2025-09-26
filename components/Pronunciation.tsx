@@ -39,6 +39,25 @@ export default function Pronunciation() {
 
   const pct = quota ? Math.min(100, Math.round((quota.used / Math.max(1, quota.limit)) * 100)) : 0;
 
+  // --- Проверка, что строка выглядит как краткая финская фраза ---
+  function looksFinnish(s: string) {
+    const txt = (s || "").trim();
+
+    // кириллица — сразу мимо
+    if (/[а-яё]/i.test(txt)) return false;
+
+    // должна быть латиница и/или финские ä/ö/å
+    if (!/[a-zäöå]/i.test(txt)) return false;
+
+    // не длиннее 10 слов
+    if (txt.split(/\s+/).length > 10) return false;
+
+    // не пустая
+    if (!txt) return false;
+
+    return true;
+  }
+
   async function getPhrase() {
     setTouched(true);
     setLoadingPhrase(true);
@@ -49,27 +68,44 @@ export default function Pronunciation() {
 
     try {
       const engine = await getEngine();
-      const res: any = await engine.chat.completions.create({
-        messages: [
-          {
-            role: "system",
-            content:
-              "Ты — преподаватель финского. Сгенерируй ОДНУ короткую фразу уровня A1–A2 ТОЛЬКО на финском. Без перевода и комментариев. Верни строку без кавычек.",
-          },
-          { role: "user", content: "Дай одну краткую повседневную финскую фразу." },
-        ],
-        temperature: 0.8,
-        max_tokens: 30,
-      });
 
-      const raw =
-        res?.choices?.[0]?.message?.content ??
-        res?.choices?.[0]?.text ??
-        res?.output_text ??
-        "Hei!";
+      // до 3 попыток добиться финской короткой фразы
+      let phrase = "";
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const res: any = await engine.chat.completions.create({
+          messages: [
+            {
+              role: "system",
+              // Дублируем требования на финском и русском
+              content:
+                "Olet suomen kielen opettaja. Palauta TÄSMÄLLEEN YKSI lyhyt arkinen lause SUOMEKSI. " +
+                "Ei käännöstä, ei selityksiä, ei lainausmerkkejä.\n" +
+                "Ты — преподаватель финского. Верни РОВНО ОДНУ короткую повседневную фразу ТОЛЬКО НА ФИНСКОМ. " +
+                "Без перевода и комментариев. Никаких кавычек.",
+            },
+            { role: "user", content: "Anna yksi lyhyt arkinen lause suomeksi." },
+          ],
+          temperature: 0.4,
+          max_tokens: 20,
+        });
 
-      const phrase = String(raw).replace(/^['\"«»]+|['\"«»]+$/g, "").trim();
-      setTarget(phrase || "Hei!");
+        const raw =
+          res?.choices?.[0]?.message?.content ??
+          res?.choices?.[0]?.text ??
+          res?.output_text ??
+          "";
+
+        // чистим кавычки, пробелы, завершающие знаки
+        phrase = String(raw)
+          .replace(/^['"«»\s]+|['"«»\s]+$/g, "")
+          .replace(/[.?!]+$/, "")
+          .trim();
+
+        if (looksFinnish(phrase)) break;
+        phrase = ""; // попробуем ещё
+      }
+
+      setTarget(phrase || pickFallback());
     } catch (e: any) {
       console.error("[Pronunciation.getPhrase] error:", e);
       setErr(e?.message || "Ошибка локальной модели");
