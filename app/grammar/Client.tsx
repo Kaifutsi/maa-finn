@@ -508,12 +508,24 @@ function PageInner() {
       {/* Modal details — показываем ВСЁ: фронт + бэк */}
       {open && (
         <div className="fixed inset-0 z-40">
+          {/* фон */}
           <div
             className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
             onClick={() => setOpen(null)}
           />
+          {/* диалог */}
           <div className="absolute inset-0 flex items-center justify-center p-4">
-            <div className="w-full max-w-2xl rounded-3xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl">
+            <div
+              className={[
+                // рамка модалки: ФИКС макс-высота и скролл внутри
+                "w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden",
+                "rounded-3xl bg-white dark:bg-slate-900",
+                "border border-slate-200 dark:border-slate-800 shadow-2xl",
+              ].join(" ")}
+              role="dialog"
+              aria-modal="true"
+            >
+              {/* верхняя картинка (опционально) */}
               {modalSrc && (
                 <Image
                   src={modalSrc}
@@ -521,54 +533,65 @@ function PageInner() {
                   width={1200}
                   height={700}
                   className="w-full h-auto object-cover"
+                  priority
                 />
               )}
-              <div className="p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="text-2xl font-extrabold">
-                    {open.title}
-                  </h3>
-                  <button
-                    className="inline-flex items-center justify-center rounded-full bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 p-2 shadow hover:scale-105 transition"
-                    onClick={() => setOpen(null)}
-                    aria-label="Закрыть"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+
+              {/* прокручиваемая область контента */}
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                {/* липкая шапка с заголовком и закрытием */}
+                <div className="sticky top-0 z-10 bg-white/95 dark:bg-slate-900/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-slate-900/80 border-b border-slate-200/70 dark:border-slate-800/70">
+                  <div className="px-5 py-3 flex items-start justify-between gap-3">
+                    <h3 className="text-xl md:text-2xl font-extrabold leading-tight pr-8">
+                      {open.title}
+                    </h3>
+                    <button
+                      className="shrink-0 inline-flex items-center justify-center rounded-full bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 p-2 shadow hover:scale-105 transition"
+                      onClick={() => setOpen(null)}
+                      aria-label="Закрыть"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
-                {/* фронт */}
-                <div className="mt-2">
-                  <p className="text-slate-700 dark:text-slate-300">{open.description}</p>
-                  {open.examples?.length ? (
-                    <ul className="mt-2 list-disc pl-5 space-y-1 text-sm">
-                      {open.examples.map((e, i) => (
-                        <li key={`f-${i}`}>{e}</li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </div>
-
-                {/* бэк (если есть) */}
-                {(open.backTitle || open.backDescription || open.backExamples?.length) && (
-                  <div className="mt-5 border-t border-slate-200 dark:border-slate-800 pt-4">
-                    <h4 className="text-lg font-bold">
-                      {open.backTitle || "Пояснение"}
-                    </h4>
-                    {open.backDescription && (
-                      <p className="mt-1 text-slate-700 dark:text-slate-300">
-                        {open.backDescription}
-                      </p>
+                {/* содержимое */}
+                <div className="px-5 pb-6 pt-4 space-y-4">
+                  {/* фронт */}
+                  <div>
+                    {open.description && (
+                      <p className="text-slate-700 dark:text-slate-300">{open.description}</p>
                     )}
-                    {open.backExamples?.length ? (
+                    {open.examples?.length ? (
                       <ul className="mt-2 list-disc pl-5 space-y-1 text-sm">
-                        {open.backExamples.map((e, i) => (
-                          <li key={`b-${i}`}>{e}</li>
+                        {open.examples.map((e, i) => (
+                          <li key={`f-${i}`}>{e}</li>
                         ))}
                       </ul>
                     ) : null}
                   </div>
-                )}
+
+                  {/* бэк */}
+                  {(open.backTitle || open.backDescription || open.backExamples?.length) && (
+                    <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
+                      <h4 className="text-lg font-bold mb-1">
+                        {open.backTitle || "Пояснение"}
+                      </h4>
+                      {open.backDescription && (
+                        <p className="text-slate-700 dark:text-slate-300">
+                          {open.backDescription}
+                        </p>
+                      )}
+                      {open.backExamples?.length ? (
+                        <ul className="mt-2 list-disc pl-5 space-y-1 text-sm">
+                          {open.backExamples.map((e, i) => (
+                            <li key={`b-${i}`}>{e}</li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
