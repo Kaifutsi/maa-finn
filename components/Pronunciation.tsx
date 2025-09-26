@@ -1,8 +1,7 @@
-// /components/Pronunciation.tsx
 "use client";
 
 import { useState, useRef } from "react";
-import { Mic, Square, Volume2, RefreshCw, Sparkles } from "lucide-react";
+import { Mic, Square, Volume2, RefreshCw } from "lucide-react";
 import { getEngine } from "@/lib/webllm";
 
 type Quota = { limit: number; used: number; remaining: number; resetAt: number };
@@ -25,20 +24,19 @@ export default function Pronunciation() {
   const [transcript, setTranscript] = useState<string>("");
   const [score, setScore] = useState<number | null>(null);
 
-  // для совместимости с твоим UI (здесь квоты по сути OFF)
+  // для совместимости с твоим UI (квот нет)
   const [quota] = useState<Quota | null>(null);
   const [paywalled] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
 
-  // Заглушка «в разработке» используем только если WebLLM реально упадёт
-  const [maintenance, setMaintenance] = useState(false);
-
   const mediaRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
   const fmtReset = (ts?: number) =>
-    ts ? new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(ts)) : "в следующем месяце";
+    ts
+      ? new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(ts))
+      : "в следующем месяце";
 
   const pct = quota ? Math.min(100, Math.round((quota.used / Math.max(1, quota.limit)) * 100)) : 0;
 
@@ -57,7 +55,8 @@ export default function Pronunciation() {
           {
             role: "system",
             content:
-              "Ты — преподаватель финского. Сгенерируй ОДНУ короткую фразу уровня A1–A2 ТОЛЬКО на финском. Без перевода и комментариев. Верни строку без кавычек.",
+              "Ты — преподаватель финского. Сгенерируй ОДНУ короткую фразу уровня A1–A2 ТОЛЬКО на финском. " +
+              "Без перевода и комментариев. Верни строку без кавычек.",
           },
           { role: "user", content: "Дай одну краткую повседневную финскую фразу." },
         ],
@@ -71,18 +70,15 @@ export default function Pronunciation() {
         "Hei!";
 
       const phrase = raw.replace(/^['\"«»]+|['\"«»]+$/g, "").trim();
-
       setTarget(phrase || "Hei!");
     } catch (e: any) {
       setErr(e?.message || "Ошибка локальной модели");
-      // fallback остаётся прежним target
-      setMaintenance(true); // чтобы показать мягкую карточку, если совсем сломано
     } finally {
       setLoadingPhrase(false);
     }
   }
 
-  // очень простая «оценка» похожести — как было
+  // простая «оценка» похожести
   function simpleScore(hyp: string) {
     const norm = (s: string) => s.toLowerCase().replace(/[^a-zäöå\s.]/gi, "").trim();
     const a = norm(target);
@@ -150,72 +146,6 @@ export default function Pronunciation() {
     window.speechSynthesis.speak(u);
   }
 
-  // --- Заглушка «в разработке» (если WebLLM не подхватился) ---
-  if (maintenance) {
-    return (
-      <section className="max-w-6xl mx-auto px-4 pb-14">
-        <div className="rounded-3xl p-6 md:p-10 bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow grid md:grid-cols-[1.2fr,1fr] gap-6 items-center">
-          <div>
-            <span className="inline-flex items-center gap-2 text-xs tracking-widest uppercase text-sky-700/80 dark:text-sky-300/80 bg-white/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-full px-3 py-1">
-              <Sparkles className="w-3.5 h-3.5" />
-              В разработке
-            </span>
-            <h3 className="text-2xl font-extrabold mt-2">Произношение с ИИ</h3>
-            <p className="opacity-80 mt-2">
-              Локальная модель не загрузилась. Обнови страницу — попробуем ещё раз. Пока можно тренироваться на офлайн-фразах.
-            </p>
-
-            <div className="flex flex-wrap gap-3 mt-4">
-              {!recording ? (
-                <button onClick={start} className="px-4 py-2 rounded-2xl bg-sky-600 text-white flex items-center gap-2">
-                  <Mic className="w-4 h-4" /> Записать
-                </button>
-              ) : (
-                <button onClick={stop} className="px-4 py-2 rounded-2xl bg-red-600 text-white flex items-center gap-2">
-                  <Square className="w-4 h-4" /> Стоп
-                </button>
-              )}
-
-              <button
-                onClick={playSample}
-                className="px-4 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 flex items-center gap-2"
-              >
-                <Volume2 className="w-4 h-4" /> Послушать пример
-              </button>
-
-              <button
-                onClick={() => setTarget(pickFallback())}
-                disabled={loadingPhrase || recording}
-                className="px-4 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 flex items-center gap-2 disabled:opacity-50"
-                title={recording ? "Останови запись, чтобы сменить фразу" : ""}
-              >
-                <RefreshCw className="w-4 h-4" /> Новая фраза
-              </button>
-            </div>
-
-            <p className="mt-4 text-sm">
-              Hei! Sano lause: <i>{loadingPhrase ? "генерируем…" : `“${target}”`}</i>
-            </p>
-            {transcript && <p className="mt-2 text-sm opacity-80">Распознано: “{transcript}”</p>}
-            {score !== null && <p className="mt-1 text-sm">Оценка: <b>{score}</b>/100</p>}
-            <p className="mt-3 text-xs text-slate-500">Подсказка: «Новая фраза» пока берёт примеры из офлайн-набора.</p>
-          </div>
-
-          <div className="rounded-2xl bg-sky-50/60 dark:bg-slate-800/40 border border-sky-200/60 dark:border-slate-700 p-4 min-h-[160px]">
-            {audioURL ? (
-              <audio controls src={audioURL} className="w-full" />
-            ) : (
-              <div className="h-24 rounded-xl bg-white/60 dark:bg-slate-900/40 grid place-items-center text-sm">
-                {recording ? "Запись идёт…" : "Нажми «Записать», чтобы проверить произношение"}
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  // --- Обычный режим (WebLLM доступен) ---
   return (
     <section className="max-w-6xl mx-auto px-4 pb-14">
       <div className="rounded-3xl p-6 md:p-10 bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow grid md:grid-cols-[1.2fr,1fr] gap-6 items-center">
@@ -223,7 +153,6 @@ export default function Pronunciation() {
           <h3 className="text-2xl font-extrabold">Произношение с ИИ</h3>
           <p className="opacity-80 mt-2">Каждый раз — новая финская фраза уровня A1–A2.</p>
 
-          {/* UI квоты оставлен для совместимости, но он выключен */}
           {touched && paywalled && quota && (
             <div className="mt-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/40 p-4">
               <div className="text-sm text-slate-700 dark:text-slate-300">
@@ -252,10 +181,7 @@ export default function Pronunciation() {
               </button>
             )}
 
-            <button
-              onClick={playSample}
-              className="px-4 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 flex items-center gap-2"
-            >
+            <button onClick={playSample} className="px-4 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 flex items-center gap-2">
               <Volume2 className="w-4 h-4" /> Послушать пример
             </button>
 
