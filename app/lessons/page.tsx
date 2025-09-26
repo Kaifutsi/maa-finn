@@ -5056,37 +5056,61 @@ function PageInner() {
       <Header />
 
       {/* HERO */}
-      <section className="max-w-6xl mx-auto px-3 sm:px-6 py-4">
-        <div className="lessons-filters flex flex-wrap items-stretch gap-2">
-          {/* Поиск */}
-          <label className="relative flex-1 min-w-0 basis-full sm:basis-[420px]">
+      <section className="max-w-6xl mx-auto px-4 pt-8 md:pt-12">
+        <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">Уроки</h2>
+        <p className="mt-3 text-slate-600 dark:text-slate-300 max-w-prose">
+          A1 с упором на интерактив: карточки, порядок, квизы, таймеры, мини-диалоги и покупки по бюджету.
+        </p>
+
+        {/* Поиск/фильтры */}
+        <div className="mt-6 grid gap-3 md:grid-cols-[1fr,150px,220px,auto]">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
             <input
-              className="w-full pl-9 pr-3 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60 outline-none focus:ring-2 ring-sky-500"
+              ref={searchRef}
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
               placeholder="Поиск: дни недели, числа, страны…  (нажми «/»)"
+              className="w-full pl-9 pr-3 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60 outline-none focus:ring-2 ring-sky-500"
               aria-label="Поиск по урокам"
             />
-            {/* Иконка лупы */}
-            <svg className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 opacity-60" /* ... */ />
-          </label>
+          </div>
 
-          {/* Фильтр по уровню */}
-          <select
-            className="flex-1 min-w-0 basis-[48%] sm:basis-auto w-full sm:w-auto rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60 h-10 px-4"
-            aria-label="Фильтр по уровню"
-          >
-            {/* options */}
+          <select value={level} onChange={(e) => setLevel(e.target.value)} className="px-4 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60" aria-label="Фильтр по уровню">
+            <option value="">Все уровни</option>
+            {levels.map((l) => (<option key={l} value={l}>{l}</option>))}
           </select>
 
-          {/* Фильтр по плейлисту */}
-          <select
-            className="flex-1 min-w-0 basis-[48%] sm:basis-auto w-full sm:w-auto rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60 h-10 px-4"
-            aria-label="Фильтр по плейлисту"
-          >
-            {/* options */}
+          <select value={playlist} onChange={(e) => setPlaylist(e.target.value)} className="px-4 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60" aria-label="Фильтр по плейлисту">
+            <option value="">Все плейлисты</option>
+            {PLAYLISTS.map((p) => (<option key={p.id} value={p.id}>{p.title}</option>))}
           </select>
-  </div>
-</section>
 
+          <div className="flex items-center gap-2">
+            <select value={sort} onChange={(e) => setSort(e.target.value as any)} className="px-3 py-2 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white/80 dark:bg-slate-900/60" aria-label="Сортировка">
+              <option value="relevance">По релевантности</option>
+              <option value="alpha">По алфавиту</option>
+              <option value="shuffle">Случайно</option>
+            </select>
+            <button
+              className={`px-3 py-2 rounded-2xl border text-sm inline-flex items-center gap-2 ${
+                onlyUndone ? "border-amber-400 bg-amber-50 text-amber-700 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200" : "border-slate-300 dark:border-slate-700"
+              }`}
+              onClick={() => setOnlyUndone((v) => !v)}
+              title="Только незавершённые (F)"
+            >
+              <ListChecks className="w-4 h-4" /> Незавершённые
+            </button>
+            <button
+              className="px-3 py-2 rounded-2xl border text-sm inline-flex items-center gap-2 border-slate-300 dark:border-slate-700 hover:bg-white/60 dark:hover:bg-slate-900/40"
+              onClick={() => setSort("shuffle")}
+              title="Перемешать (R)"
+            >
+              <Shuffle className="w-4 h-4" /> Перемешать
+            </button>
+          </div>
+        </div>
+      </section>
 
       {/* Плейлисты + прогресс */}
       <section className="max-w-6xl mx-auto px-4 py-6 space-y-6">
