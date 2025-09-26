@@ -535,7 +535,7 @@ function PageInner() {
               {/* небольшое превью картинки — меньше места, без обрезки */}
               {modalSrc && (
                 <div className="border-b border-slate-200 dark:border-slate-800">
-                  <div className="h-32 md:h-44 lg:h-48 flex items-center justify-center bg-slate-50 dark:bg-slate-800/40">
+                  <div className="h-40 md:h-56 lg:h-64 flex items-center justify-center bg-slate-50 dark:bg-slate-800/40">
                     <Image
                       src={modalSrc}
                       alt={open.backTitle ?? open.title}
