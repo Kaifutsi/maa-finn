@@ -12,7 +12,7 @@ export default function AIWidget() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  // Квоты оставлены для совместимости с UI, но при локальной модели они не используются
+  // UI-поля оставляем, но локальной квоты нет
   const [quota] = useState<Quota | null>(null);
   const [paywalled] = useState(false);
 
@@ -46,14 +46,14 @@ export default function AIWidget() {
         max_tokens: 256,
       });
 
-      // WebLLM может возвращать текст в разных полях
-      const txt =
-        res?.choices?.[0]?.message?.content ?? // совместимость с OpenAI-форматом
-        res?.choices?.[0]?.text ??             // основной путь для WebLLM
-        res?.output_text ??                    // старые сборки WebLLM
+      // Универсальный парсинг ответа (разные версии WebLLM/OpenAI-совместимого API)
+      const raw =
+        res?.choices?.[0]?.message?.content ??
+        res?.choices?.[0]?.text ??
+        res?.output_text ??
         "";
 
-      setA(String(txt).trim());
+      setA(String(raw).trim());
     } catch (e: any) {
       console.error("[AIWidget.ask] error:", e);
       setErr(e?.message || "Ошибка локальной модели");
