@@ -23,7 +23,7 @@ type Card = {
   backExamples?: string[];
 };
 
-// мини-FlipCard без 3D, с надёжным кликом/скроллом
+/* ---------- FlipCard (надёжный клик, не блокирует скролл) ---------- */
 function FlipCard({
   className = "",
   back,
@@ -46,21 +46,20 @@ function FlipCard({
   return (
     <button
       type="button"
-      // убрал select-none, добавил touch-action → скролл пальцем естественный
       className={[
-        "text-left w-full h-full cursor-pointer",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 rounded-3xl",
+        "text-left w-full h-full cursor-pointer rounded-3xl",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60",
         className,
       ].join(" ")}
       style={{ touchAction: "manipulation" }}
       aria-pressed={flipped}
+      aria-expanded={flipped}
       onClick={(e) => {
-        // интерактивные потомки: если клик по КОМУ-ТО внутри (не по самой карточке)
         const t = e.target as HTMLElement;
         const interactive = t.closest(
           "a,button,input,textarea,select,[role='switch'],[role='tab']"
         ) as HTMLElement | null;
-        if (interactive && interactive !== e.currentTarget) return; // не флипать
+        if (interactive && interactive !== e.currentTarget) return;
         toggle();
       }}
       onKeyDown={onKey}
@@ -96,7 +95,7 @@ function PageInner() {
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState<Card | null>(null);
 
-  // избранные правила и фильтр по ним
+  // избранное / фильтр
   const [favs, setFavs] = useState<number[]>([]);
   const [onlyFavs, setOnlyFavs] = useState(false);
 
@@ -111,20 +110,18 @@ function PageInner() {
       if (Array.isArray(f)) setFavs(f);
     } catch {}
   }, []);
-
   useEffect(() => {
     try {
       localStorage.setItem("grammar_ui", JSON.stringify({ onlyFavs, sort, tag }));
     } catch {}
   }, [onlyFavs, sort, tag]);
-
   useEffect(() => {
     try {
       localStorage.setItem("grammar_favs", JSON.stringify(favs));
     } catch {}
   }, [favs]);
 
-  // URL → state on soft nav
+  // URL → state
   useEffect(() => {
     setQ((searchParams.get("q") ?? "").trim());
     setTag((searchParams.get("tag") ?? "").trim());
@@ -178,7 +175,7 @@ function PageInner() {
   const visible = filtered.slice(0, page * pageSize);
   const canLoadMore = visible.length < filtered.length;
 
-  // авто-подгрузка по скроллу
+  // авто-подгрузка
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (!sentinelRef.current) return;
@@ -209,7 +206,7 @@ function PageInner() {
         </p>
       </section>
 
-      {/* Фильтры (sticky) — безопасный слой, чтобы не перекрывал скролл */}
+      {/* Фильтры (sticky) */}
       <div className="sticky top-0 z-20" style={{ backfaceVisibility: "hidden" }}>
         <section
           className="max-w-6xl mx-auto px-4 py-3 grid gap-3 md:grid-cols-[1fr,auto,auto,auto]
@@ -323,6 +320,16 @@ function PageInner() {
         {visible.map((card: Card) => {
           const fav = favs.includes(card.id);
           const backSrc = card.backImage ?? card.image;
+
+          // общая «скролл-вставка» для текста (ограничиваем высоту и даём прокрутку)
+          const ScrollableText: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+            <div className="mt-2 min-h-0 flex-1">
+              <div className="max-h-48 md:max-h-56 overflow-y-auto pr-1">
+                {children}
+              </div>
+            </div>
+          );
+
           return (
             <FlipCard
               key={card.id}
@@ -335,10 +342,10 @@ function PageInner() {
                       alt={card.backTitle ?? card.title}
                       width={900}
                       height={520}
-                      className="w-full h-auto object-cover rounded-t-3xl transition group-hover:scale-[1.01]"
+                      className="w-full h-auto object-cover rounded-t-3xl"
                     />
                   )}
-                  <div className="p-4 flex-1 flex flex-col">
+                  <div className="p-4 flex-1 min-h-0 flex flex-col">
                     <div className="flex items-center gap-2">
                       <h4 className="font-semibold text-lg leading-snug line-clamp-2">
                         {card.backTitle || card.title}
@@ -361,17 +368,18 @@ function PageInner() {
                     </div>
 
                     {card.backDescription && (
-                      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                        {card.backDescription}
-                      </p>
-                    )}
-
-                    {card.backExamples && card.backExamples.length > 0 && (
-                      <ul className="mt-auto list-disc pl-5 space-y-1 text-sm">
-                        {card.backExamples.slice(0, 4).map((e: string, i: number) => (
-                          <li key={i}>{e}</li>
-                        ))}
-                      </ul>
+                      <ScrollableText>
+                        <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                          {card.backDescription}
+                        </p>
+                        {card.backExamples?.length ? (
+                          <ul className="mt-2 list-disc pl-5 space-y-1 text-sm">
+                            {card.backExamples.slice(0, 8).map((e: string, i: number) => (
+                              <li key={i}>{e}</li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </ScrollableText>
                     )}
 
                     <button
@@ -394,11 +402,11 @@ function PageInner() {
                     alt={card.title}
                     width={900}
                     height={520}
-                    className="w-full h-auto object-cover rounded-t-3xl transition group-hover:scale-[1.01]"
+                    className="w-full h-auto object-cover rounded-t-3xl"
                   />
                 )}
 
-                <div className="p-4 flex-1 flex flex-col">
+                <div className="p-4 flex-1 min-h-0 flex flex-col">
                   <div className="flex flex-wrap gap-1.5">
                     {(card.tags || []).slice(0, 3).map((t: string) => (
                       <span
@@ -410,32 +418,57 @@ function PageInner() {
                     ))}
                   </div>
 
-                  <h3 className="mt-2 text-xl font-bold leading-snug line-clamp-2">
+                  <h3 className="mt-2 text-xl font-bold leading-snug">
                     {card.title}
                   </h3>
 
-                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3">
-                    {card.description}
-                  </p>
+                  <ScrollableText>
+                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                      {card.description}
+                    </p>
+                    {card.examples?.length ? (
+                      <ul className="mt-2 list-disc pl-5 space-y-1 text-sm">
+                        {card.examples.slice(0, 8).map((ex: string, i: number) => (
+                          <li key={i}>{ex}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </ScrollableText>
 
-                  {card.examples?.length ? (
-                    <ul className="mt-auto list-disc pl-5 space-y-1 text-sm">
-                      {card.examples.slice(0, 4).map((ex: string, i: number) => (
-                        <li key={i}>{ex}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div className="mt-auto text-xs text-slate-500">
-                      Нажми, чтобы открыть пояснения ↺
-                    </div>
-                  )}
+                  <div className="mt-2 flex items-center gap-2">
+                    <button
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-white/60 dark:hover:bg-slate-900/40"
+                      onClick={(ev) => {
+                        ev.stopPropagation();
+                        setOpen(card);
+                      }}
+                    >
+                      Подробнее <Info className="w-4 h-4" />
+                    </button>
+
+                    <button
+                      className={`ml-auto inline-flex items-center justify-center rounded-full p-1.5 border ${
+                        fav
+                          ? "border-amber-400 text-amber-500"
+                          : "border-slate-300 text-slate-500 dark:border-slate-700"
+                      }`}
+                      onClick={(ev) => {
+                        ev.stopPropagation();
+                        toggleFav(card.id);
+                      }}
+                      title={fav ? "Убрать из избранного" : "В избранное"}
+                      aria-pressed={fav}
+                    >
+                      <Star className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </FlipCard>
           );
         })}
 
-        {/* кнопка «ещё» + сенсор для автоподгрузки */}
+        {/* «Ещё» + сенсор */}
         {canLoadMore && (
           <div className="col-span-full flex justify-center">
             <button
@@ -472,7 +505,7 @@ function PageInner() {
 
       <Footer />
 
-      {/* Modal details */}
+      {/* Modal details — показываем ВСЁ: фронт + бэк */}
       {open && (
         <div className="fixed inset-0 z-40">
           <div
@@ -492,16 +525,9 @@ function PageInner() {
               )}
               <div className="p-5">
                 <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h3 className="text-2xl font-extrabold">
-                      {open.backTitle || open.title}
-                    </h3>
-                    {open.backDescription && (
-                      <p className="mt-1 text-slate-600 dark:text-slate-300">
-                        {open.backDescription}
-                      </p>
-                    )}
-                  </div>
+                  <h3 className="text-2xl font-extrabold">
+                    {open.title}
+                  </h3>
                   <button
                     className="inline-flex items-center justify-center rounded-full bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 p-2 shadow hover:scale-105 transition"
                     onClick={() => setOpen(null)}
@@ -511,13 +537,38 @@ function PageInner() {
                   </button>
                 </div>
 
-                {open.backExamples?.length ? (
-                  <ul className="mt-4 list-disc pl-5 space-y-1 text-sm">
-                    {open.backExamples.map((e: string, i: number) => (
-                      <li key={i}>{e}</li>
-                    ))}
-                  </ul>
-                ) : null}
+                {/* фронт */}
+                <div className="mt-2">
+                  <p className="text-slate-700 dark:text-slate-300">{open.description}</p>
+                  {open.examples?.length ? (
+                    <ul className="mt-2 list-disc pl-5 space-y-1 text-sm">
+                      {open.examples.map((e, i) => (
+                        <li key={`f-${i}`}>{e}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+
+                {/* бэк (если есть) */}
+                {(open.backTitle || open.backDescription || open.backExamples?.length) && (
+                  <div className="mt-5 border-t border-slate-200 dark:border-slate-800 pt-4">
+                    <h4 className="text-lg font-bold">
+                      {open.backTitle || "Пояснение"}
+                    </h4>
+                    {open.backDescription && (
+                      <p className="mt-1 text-slate-700 dark:text-slate-300">
+                        {open.backDescription}
+                      </p>
+                    )}
+                    {open.backExamples?.length ? (
+                      <ul className="mt-2 list-disc pl-5 space-y-1 text-sm">
+                        {open.backExamples.map((e, i) => (
+                          <li key={`b-${i}`}>{e}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                )}
               </div>
             </div>
           </div>
