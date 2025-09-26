@@ -7,7 +7,6 @@ import { getEngine } from "@/lib/webllm";
 type Quota = { limit: number; used: number; remaining: number; resetAt: number };
 
 export default function Pronunciation() {
-  // офлайн-пул на случай первой загрузки
   const fallbackPool = [
     "Hei! Mitä kuuluu?",
     "Minä puhun suomea vähän.",
@@ -24,6 +23,7 @@ export default function Pronunciation() {
   const [transcript, setTranscript] = useState<string>("");
   const [score, setScore] = useState<number | null>(null);
 
+  // Для совместимости с прежним UI
   const [quota] = useState<Quota | null>(null);
   const [paywalled] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -78,7 +78,7 @@ export default function Pronunciation() {
     }
   }
 
-  // очень простая «оценка» похожести
+  // Простейшая «оценка» похожести
   function simpleScore(hyp: string) {
     const norm = (s: string) => s.toLowerCase().replace(/[^a-zäöå\s.]/gi, "").trim();
     const a = norm(target);
@@ -109,7 +109,7 @@ export default function Pronunciation() {
     rec.start();
     setRecording(true);
 
-    // Web Speech API (если поддерживается)
+    // Web Speech API
     // @ts-ignore
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SR) {
@@ -125,7 +125,9 @@ export default function Pronunciation() {
 
       const prevOnStop = (rec.onstop as ((this: MediaRecorder, ev: Event) => any) | null) ?? null;
       rec.onstop = (e: Event) => {
-        try { r.stop(); } catch {}
+        try {
+          r.stop();
+        } catch {}
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         setAudioURL(URL.createObjectURL(blob));
         prevOnStop?.call(rec, e);
@@ -159,10 +161,7 @@ export default function Pronunciation() {
                 Лимит запросов исчерпан. Сброс — <span className="font-medium">{fmtReset(quota.resetAt)}</span>.
               </div>
               <div className="mt-2 h-2 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-[width] duration-500"
-                  style={{ width: `${pct}%` }}
-                />
+                <div className="h-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-[width] duration-500" style={{ width: `${pct}%` }} />
               </div>
             </div>
           )}
