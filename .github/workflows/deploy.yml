@@ -49,10 +49,8 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      # если модель уже в репозитории (public/models/...), ничего качать не нужно
-      # если захочешь качать в CI — раскомментируй и поправь скрипт под Llama
-      # - name: Download MLC model (Llama-3.2-3B)
-      #   run: MLC_MODEL_ID="${NEXT_PUBLIC_MLC_MODEL}" npm run download:model
+      - name: Download MLC model (Llama-3.2-3B)
+        run: MLC_MODEL_ID="${NEXT_PUBLIC_MLC_MODEL}" npm run download:model
 
       - name: Strip server routes for static export
         run: |
