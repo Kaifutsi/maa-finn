@@ -23,7 +23,7 @@ type Card = {
   backExamples?: string[];
 };
 
-// мини-FlipCard без 3D, но с надёжным кликом/фокусом
+// мини-FlipCard без 3D, с надёжным кликом/скроллом
 function FlipCard({
   className = "",
   back,
@@ -34,7 +34,6 @@ function FlipCard({
   children: React.ReactNode;
 }) {
   const [flipped, setFlipped] = useState(false);
-
   const toggle = () => setFlipped((v) => !v);
 
   const onKey: React.KeyboardEventHandler<HTMLButtonElement> = (e) => {
@@ -47,18 +46,21 @@ function FlipCard({
   return (
     <button
       type="button"
+      // убрал select-none, добавил touch-action → скролл пальцем естественный
       className={[
-        "text-left w-full h-full cursor-pointer select-none",
+        "text-left w-full h-full cursor-pointer",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60 rounded-3xl",
         className,
       ].join(" ")}
+      style={{ touchAction: "manipulation" }}
       aria-pressed={flipped}
       onClick={(e) => {
-        // если клик по интерактивному потомку — не переворачиваем
+        // интерактивные потомки: если клик по КОМУ-ТО внутри (не по самой карточке)
         const t = e.target as HTMLElement;
-        const isInteractive =
-          t.closest("button, a, input, textarea, select, [role='switch'], [role='tab']") !== null;
-        if (isInteractive) return;
+        const interactive = t.closest(
+          "a,button,input,textarea,select,[role='switch'],[role='tab']"
+        ) as HTMLElement | null;
+        if (interactive && interactive !== e.currentTarget) return; // не флипать
         toggle();
       }}
       onKeyDown={onKey}
