@@ -4,9 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "next build && next export",
     "preview": "npx serve out",
-    "lint": "next lint"
+    "lint": "next lint",
+
+    "download:model": "node scripts/download-mlc-model.mjs",
+    "prepare:model": "npm run download:model"
   },
   "dependencies": {
     "@mlc-ai/web-llm": "^0.2.79",
