@@ -94,7 +94,6 @@ function PageInner() {
   );
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState<Card | null>(null);
-  const [imgFull, setImgFull] = useState(false);
 
   // избранное / фильтр
   const [favs, setFavs] = useState<number[]>([]);
@@ -194,6 +193,13 @@ function PageInner() {
     setFavs((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
   const modalSrc = open?.backImage ?? open?.image;
+
+  /* ———— Вспомогательная «скролл-вставка» для текста карточек ———— */
+  const ScrollableText: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <div className="mt-2 min-h-0 flex-1">
+      <div className="max-h-48 md:max-h-56 overflow-y-auto pr-1">{children}</div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[radial-gradient(60%_40%_at_20%_-10%,#dff0ff_0%,transparent_70%),radial-gradient(50%_30%_at_100%_0%,#eaf6ff_0%,transparent_60%)] dark:bg-slate-950 text-slate-900 dark:text-slate-100">
@@ -322,15 +328,6 @@ function PageInner() {
           const fav = favs.includes(card.id);
           const backSrc = card.backImage ?? card.image;
 
-          // общая «скролл-вставка» для текста (ограничиваем высоту и даём прокрутку)
-          const ScrollableText: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-            <div className="mt-2 min-h-0 flex-1">
-              <div className="max-h-48 md:max-h-56 overflow-y-auto pr-1">
-                {children}
-              </div>
-            </div>
-          );
-
           return (
             <FlipCard
               key={card.id}
@@ -419,9 +416,7 @@ function PageInner() {
                     ))}
                   </div>
 
-                  <h3 className="mt-2 text-xl font-bold leading-snug">
-                    {card.title}
-                  </h3>
+                  <h3 className="mt-2 text-xl font-bold leading-snug">{card.title}</h3>
 
                   <ScrollableText>
                     <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
@@ -506,71 +501,83 @@ function PageInner() {
 
       <Footer />
 
-      {/* Modal details — показываем ВСЁ: фронт + бэк */}
+      {/* Modal details — фикс высота окна, маленькое превью картинки, текст скроллится */}
       {open && (
         <div className="fixed inset-0 z-40">
-          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setOpen(null)} />
+          <div
+            className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+            onClick={() => setOpen(null)}
+          />
           <div className="absolute inset-0 flex items-center justify-center p-4">
             <div
               className="w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden
-                        rounded-3xl bg-white dark:bg-slate-900
-                        border border-slate-200 dark:border-slate-800 shadow-2xl"
-              role="dialog" aria-modal="true"
+                         rounded-3xl bg-white dark:bg-slate-900
+                         border border-slate-200 dark:border-slate-800 shadow-2xl"
+              role="dialog"
+              aria-modal="true"
             >
-              {/* шапка */}
-              <div className="sticky top-0 z-10 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200/70 dark:border-slate-800/70">
+              {/* липкая шапка */}
+              <div className="sticky top-0 z-10 bg-white/95 dark:bg-slate-900/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-slate-900/80 border-b border-slate-200/70 dark:border-slate-800/70">
                 <div className="px-5 py-3 flex items-start justify-between gap-3">
-                  <h3 className="text-xl md:text-2xl font-extrabold leading-tight pr-8">{open.title}</h3>
+                  <h3 className="text-xl md:text-2xl font-extrabold leading-tight pr-8">
+                    {open.title}
+                  </h3>
                   <button
                     className="shrink-0 inline-flex items-center justify-center rounded-full bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 p-2 shadow hover:scale-105 transition"
-                    onClick={() => setOpen(null)} aria-label="Закрыть"
+                    onClick={() => setOpen(null)}
+                    aria-label="Закрыть"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
-              {/* уменьшенное превью */}
+              {/* небольшое превью картинки — меньше места, без обрезки */}
               {modalSrc && (
-                <div className="relative h-40 md:h-56 overflow-hidden border-b border-slate-200 dark:border-slate-800">
-                  <Image
-                    src={modalSrc}
-                    alt={open.backTitle ?? open.title}
-                    width={1600}
-                    height={1000}
-                    className="w-full h-full object-cover"
-                    priority
-                  />
-                  <button
-                    onClick={() => setImgFull(true)}
-                    className="absolute bottom-2 right-2 text-xs px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white/90 dark:bg-slate-900/80 backdrop-blur hover:bg-white"
-                    title="Открыть во весь экран"
-                  >
-                    Открыть картинку
-                  </button>
+                <div className="border-b border-slate-200 dark:border-slate-800">
+                  <div className="h-32 md:h-44 lg:h-48 flex items-center justify-center bg-slate-50 dark:bg-slate-800/40">
+                    <Image
+                      src={modalSrc}
+                      alt={open.backTitle ?? open.title}
+                      width={1600}
+                      height={1000}
+                      className="max-h-full max-w-full object-contain"
+                      priority
+                    />
+                  </div>
                 </div>
               )}
 
-              {/* текст — максимум места, внутренний скролл */}
+              {/* текст — весь остаток, внутренний скролл */}
               <div className="flex-1 min-h-0 overflow-y-auto px-5 pb-6 pt-4 space-y-4">
+                {/* фронт */}
                 {open.description && (
                   <p className="text-slate-700 dark:text-slate-300">{open.description}</p>
                 )}
                 {open.examples?.length ? (
                   <ul className="mt-2 list-disc pl-5 space-y-1 text-sm">
-                    {open.examples.map((e, i) => (<li key={`f-${i}`}>{e}</li>))}
+                    {open.examples.map((e, i) => (
+                      <li key={`f-${i}`}>{e}</li>
+                    ))}
                   </ul>
                 ) : null}
 
+                {/* бэк (если есть) */}
                 {(open.backTitle || open.backDescription || open.backExamples?.length) && (
                   <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
-                    <h4 className="text-lg font-bold mb-1">{open.backTitle || "Пояснение"}</h4>
+                    <h4 className="text-lg font-bold mb-1">
+                      {open.backTitle || "Пояснение"}
+                    </h4>
                     {open.backDescription && (
-                      <p className="text-slate-700 dark:text-slate-300">{open.backDescription}</p>
+                      <p className="text-slate-700 dark:text-slate-300">
+                        {open.backDescription}
+                      </p>
                     )}
                     {open.backExamples?.length ? (
                       <ul className="mt-2 list-disc pl-5 space-y-1 text-sm">
-                        {open.backExamples.map((e, i) => (<li key={`b-${i}`}>{e}</li>))}
+                        {open.backExamples.map((e, i) => (
+                          <li key={`b-${i}`}>{e}</li>
+                        ))}
                       </ul>
                     ) : null}
                   </div>
@@ -578,31 +585,6 @@ function PageInner() {
               </div>
             </div>
           </div>
-
-          {/* LIGHTBOX: картинка в полном размере */}
-          {imgFull && modalSrc && (
-            <div className="fixed inset-0 z-50">
-              <div className="absolute inset-0 bg-black/80" onClick={() => setImgFull(false)} />
-              <div className="absolute inset-0 flex items-center justify-center p-4">
-                <div className="relative w-full h-full max-h-[96vh]">
-                  <Image
-                    src={modalSrc}
-                    alt={open.backTitle ?? open.title}
-                    fill
-                    className="object-contain"
-                    priority
-                  />
-                  <button
-                    onClick={() => setImgFull(false)}
-                    className="absolute top-4 right-4 rounded-full bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-700 p-2 shadow"
-                    aria-label="Закрыть полноэкранный просмотр"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>
