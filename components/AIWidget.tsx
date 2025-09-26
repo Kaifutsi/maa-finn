@@ -46,7 +46,7 @@ export default function AIWidget() {
       ].join(" ");
 
       // WebLLM имеет OpenAI-подобный интерфейс
-      const { output } = await engine.chat.completions.create({
+      const res = await engine.chat.completions.create({
         messages: [
           { role: "system", content: sys },
           { role: "user", content: question },
@@ -55,7 +55,14 @@ export default function AIWidget() {
         max_tokens: 256,
       });
 
-      setA(output?.choices?.[0]?.message?.content || "");
+      // WebLLM: основной текст может быть в choices[0].message.content,
+      // а в некоторых билдах ещё дублируется в res.output_text.
+      const txt =
+        res?.choices?.[0]?.message?.content ??
+        (res as any)?.output_text ??
+        "";
+
+      setA(txt);
     } catch (e: any) {
       setErr(e?.message || "Ошибка локальной модели");
       // если уж совсем сломалось — покажем заглушку

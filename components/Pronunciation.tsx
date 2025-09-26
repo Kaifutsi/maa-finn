@@ -52,13 +52,12 @@ export default function Pronunciation() {
 
     try {
       const engine = await getEngine();
-      const { output } = await engine.chat.completions.create({
+      const res = await engine.chat.completions.create({
         messages: [
           {
             role: "system",
             content:
-              "Ты — преподаватель финского. Сгенерируй ОДНУ короткую фразу уровня A1–A2 ТОЛЬКО на финском. " +
-              "Без перевода и комментариев. Верни строку без кавычек.",
+              "Ты — преподаватель финского. Сгенерируй ОДНУ короткую фразу уровня A1–A2 ТОЛЬКО на финском. Без перевода и комментариев. Верни строку без кавычек.",
           },
           { role: "user", content: "Дай одну краткую повседневную финскую фразу." },
         ],
@@ -66,9 +65,12 @@ export default function Pronunciation() {
         max_tokens: 30,
       });
 
-      const phrase = (output?.choices?.[0]?.message?.content || "Hei!")
-        .replace(/^['\"«»]+|['\"«»]+$/g, "")
-        .trim();
+      const raw =
+        res?.choices?.[0]?.message?.content ??
+        (res as any)?.output_text ??
+        "Hei!";
+
+      const phrase = raw.replace(/^['\"«»]+|['\"«»]+$/g, "").trim();
 
       setTarget(phrase || "Hei!");
     } catch (e: any) {
