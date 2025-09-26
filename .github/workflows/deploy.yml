@@ -22,16 +22,11 @@ env:
   ENABLE_HEADERS: "0"
   CNAME_DOMAIN: "www.maafinn.com"
 
-  NODE_OPTIONS: --max_old_space_size=4096
-
-  # ВКЛЮЧАЕМ ИИ
-  NEXT_PUBLIC_AI_DISABLED: "0"
-
-  # WebLLM для Pages
+  NEXT_PUBLIC_AI_DISABLED: "0"   # ← ВКЛЮЧАЕМ ИИ
   NEXT_PUBLIC_WASM_THREADS: "1"
   NEXT_PUBLIC_MLC_MODEL: mlc-ai/Phi-3.1-mini-4k-instruct-q4f32_1-MLC
   NEXT_PUBLIC_MLC_MODEL_URL: /models/Phi-3.1-mini-4k-instruct-q4f32_1-MLC/
-
+  NODE_OPTIONS: --max_old_space_size=4096
   NEXT_PUBLIC_BUILD_SHA: ${{ github.sha }}
   NEXT_PUBLIC_BUILD_TIME: ${{ github.run_started_at }}
   NEXT_PUBLIC_YM_ID: ${{ secrets.YM_ID }}
