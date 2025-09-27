@@ -38,3 +38,5 @@ yarn-error.log*
 next-env.d.ts
 
 public/models/
+!public/models/**/mlc-chat-config.json
+!public/models/**/tokenizer.json
