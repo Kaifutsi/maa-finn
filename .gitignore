@@ -37,6 +37,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# модели — НЕ коммитим
 public/models/
-!public/models/**/mlc-chat-config.json
-!public/models/**/tokenizer.json

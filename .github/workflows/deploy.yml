@@ -15,18 +15,16 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # кастомный домен
   CUSTOM_DOMAIN: "www.maafinn.com"
   ENABLE_HEADERS: "0"
   CNAME_DOMAIN: "www.maafinn.com"
 
-  # WebLLM включён и работает без web-threads (совместимо с Pages)
   NEXT_PUBLIC_AI_DISABLED: "0"
   NEXT_PUBLIC_WASM_THREADS: "1"
 
-  # ИСПОЛЬЗУЕМ LLAMA — именно она лежит в public/models/
-  NEXT_PUBLIC_MLC_MODEL: Llama-3.2-3B-Instruct-q4f32_1-MLC
-  NEXT_PUBLIC_MLC_MODEL_URL: /models/Llama-3.2-3B-Instruct-q4f32_1-MLC/
+  # 1B, чтобы без LFS
+  NEXT_PUBLIC_MLC_MODEL: Llama-3.2-1B-Instruct-q4f32_1-MLC
+  NEXT_PUBLIC_MLC_MODEL_URL: /models/Llama-3.2-1B-Instruct-q4f32_1-MLC/
 
   NODE_OPTIONS: --max_old_space_size=4096
   NEXT_PUBLIC_BUILD_SHA: ${{ github.sha }}
@@ -49,8 +47,10 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: Download MLC model (Llama-3.2-3B)
-        run: MLC_MODEL_ID="${NEXT_PUBLIC_MLC_MODEL}" npm run download:model
+      - name: Download MLC model (1B)
+        env:
+          MLC_MODEL_ID: mlc-ai/${{ env.NEXT_PUBLIC_MLC_MODEL }}
+        run: node scripts/download-mlc-model.mjs
 
       - name: Strip server routes for static export
         run: |
