@@ -1,32 +1,56 @@
-// scripts/download-mlc-model.mjs
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
 
-// Берём из env, иначе дефолт на 1B
-let MODEL_ID = process.env.MLC_MODEL_ID || process.env.NEXT_PUBLIC_MLC_MODEL || "Llama-3.2-1B-Instruct-q4f32_1-MLC";
-if (!MODEL_ID.includes("/")) MODEL_ID = `mlc-ai/${MODEL_ID}`;
+const MLC_MODEL_ID = process.env.MLC_MODEL_ID || process.env.NEXT_PUBLIC_MLC_MODEL;
+if (!MLC_MODEL_ID) {
+  console.error("ENV MLC_MODEL_ID or NEXT_PUBLIC_MLC_MODEL is required.");
+  process.exit(1);
+}
 
-const FOLDER  = MODEL_ID.split("/").pop();
-const OUT_DIR = path.join(process.cwd(), "public", "models", FOLDER);
+// basename — имя папки в public/models и model_id для WebLLM
+const BASENAME = MLC_MODEL_ID.split("/").pop();
+const OUT_DIR = path.join(process.cwd(), "public", "models", BASENAME);
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
-const CORE = ["ndarray-cache.json", "mlc-chat-config.json", "tokenizer.json"];
-
-// Для 1B обычно хватает ~22 шардов. Пройдём с запасом и пропустим 404.
-const SHARDS = Array.from({ length: 64 }, (_, i) => `params_shard_${i}.bin`);
-const FILES = [...CORE, ...SHARDS];
-
-for (const f of FILES) {
-  const url = `https://huggingface.co/${MODEL_ID}/resolve/main/${f}`;
-  const out = path.join(OUT_DIR, f);
-  if (fs.existsSync(out)) { console.log("skip", f); continue; }
+// Функция: получить HTTP-код без падения
+function httpStatus(url) {
   try {
-    console.log("get", f);
-    execSync(`curl -L --fail -o "${out}" "${url}"`, { stdio: "inherit" });
+    const code = execSync(`curl -s -o /dev/null -w "%{http_code}" -L "${url}"`, {
+      stdio: ["ignore", "pipe", "ignore"],
+    })
+      .toString()
+      .trim();
+    return code;
   } catch {
-    if (fs.existsSync(out)) fs.rmSync(out);
-    console.log("miss", f);
+    return "000";
   }
 }
+
+const FILES = [
+  "ndarray-cache.json",
+  "mlc-chat-config.json",
+  "tokenizer.json",
+  // Пытаемся 0..45, но качаем только то, что реально есть (у 1B — 0..21)
+  ...Array.from({ length: 46 }, (_, i) => `params_shard_${i}.bin`),
+];
+
+for (const f of FILES) {
+  const url = `https://huggingface.co/${MLC_MODEL_ID}/resolve/main/${f}`;
+  const out = path.join(OUT_DIR, f);
+  if (fs.existsSync(out)) {
+    console.log("skip", f);
+    continue;
+  }
+
+  const code = httpStatus(url);
+  if (code !== "200") {
+    console.log("miss", f, `(HTTP ${code})`);
+    continue;
+  }
+
+  console.log("get", f);
+  execSync(`curl -L --fail -o "${out}" "${url}"`, { stdio: "inherit" });
+}
+
 console.log("Done:", OUT_DIR);
