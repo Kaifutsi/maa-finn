@@ -9,7 +9,8 @@
     "lint": "next lint",
 
     "download:model": "node scripts/download-mlc-model.mjs",
-    "prepare:model": "npm run download:model"
+    "prepare:model": "npm run download:model",
+    "postexport": "cp -r public/models out/models || true"
   },
   "dependencies": {
     "@mlc-ai/web-llm": "^0.2.79",
