@@ -2,21 +2,13 @@
 
 import { useState } from "react";
 import { MessageCircle, Search } from "lucide-react";
-import { getEngine } from "@/lib/webllm";
-
-type Quota = { limit: number; used: number; remaining: number; resetAt: number };
+import { chat } from "@/lib/ai";
 
 export default function AIWidget() {
   const [q, setQ] = useState("");
   const [a, setA] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-
-  const [quota] = useState<Quota | null>(null);
-  const [paywalled] = useState(false);
-
-  const fmtReset = (ts?: number) =>
-    ts ? new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(ts)) : "в следующем месяце";
 
   async function ask(prefix?: string) {
     const question = (prefix ? `${prefix}: ` : "") + (q || "");
@@ -27,39 +19,24 @@ export default function AIWidget() {
     setA("");
 
     try {
-      const engine = await getEngine();
-
       const sys =
-        "Ты — дружелюбный преподаватель финского языка (Suomen kieli). " +
-        "Отвечай кратко и чётко, фокусируясь ТОЛЬКО на финском. " +
-        "Приводи примеры на финском; при необходимости можно кратко пояснить по-русски.";
+        "Ты — дружелюбный преподаватель финского языка. Отвечай КОРОТКО и ТОЛЬКО на финском, можно короткое русское пояснение при необходимости.";
 
-      const res = await (engine as any).chat.completions.create({
-        messages: [
+      const text = await chat(
+        [
           { role: "system", content: sys },
           { role: "user", content: question },
         ],
-        temperature: 0.5,
-        max_tokens: 256,
-      });
+        { temperature: 0.5, max_tokens: 256 }
+      );
 
-      console.log("[AIWidget] raw response:", res);
-
-      const txt =
-        res?.choices?.[0]?.message?.content ??
-        (res as any)?.output_text ??
-        "";
-
-      setA(txt);
+      setA(text);
     } catch (e: any) {
-      console.error("[AIWidget.ask] error:", e);
-      setErr(e?.message || "Ошибка локальной модели");
+      setErr(e?.message || "Ошибка сервера");
     } finally {
       setLoading(false);
     }
   }
-
-  const pct = quota ? Math.min(100, Math.round((quota.used / Math.max(1, quota.limit)) * 100)) : 0;
 
   return (
     <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 p-5 shadow-sm">
@@ -91,21 +68,9 @@ export default function AIWidget() {
           )}
 
           {!loading && !err && a && (
-            <>
-              {quota && (
-                <>
-                  <div className="h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-sky-500 to-indigo-600" style={{ width: `${pct}%` }} />
-                  </div>
-                  <div className="text-[12px] text-slate-500 mt-1">
-                    Осталось запросов: {quota.remaining} / {quota.limit} • Сброс {fmtReset(quota.resetAt)}
-                  </div>
-                </>
-              )}
-              <p className="mt-1">
-                <b>Ответ:</b> {a}
-              </p>
-            </>
+            <p className="mt-1">
+              <b>Ответ:</b> {a}
+            </p>
           )}
 
           {!loading && !a && !err && (

@@ -2,17 +2,18 @@
 
 import { useState, useRef } from "react";
 import { Mic, Square, Volume2, RefreshCw } from "lucide-react";
-import { getEngine } from "@/lib/webllm";
+import { chat } from "@/lib/ai";
 
 type Quota = { limit: number; used: number; remaining: number; resetAt: number };
 
 export default function Pronunciation() {
+  // офлайн-пул на случай любых ошибок
   const fallbackPool = [
     "Hei! Mitä kuuluu?",
-    "Minä puhun suomea vähän.",
-    "Kiitos ja anteeksi.",
-    "Missä on kahvila?",
-    "Tämä on hyvä idea.",
+    "Minä puhun vähän.",
+    "Kiitos paljon!",
+    "Missä on vessa?",
+    "Tämä on hyvä.",
   ];
   const pickFallback = () => fallbackPool[Math.floor(Math.random() * fallbackPool.length)];
   const [target, setTarget] = useState<string>(pickFallback());
@@ -23,7 +24,7 @@ export default function Pronunciation() {
   const [transcript, setTranscript] = useState<string>("");
   const [score, setScore] = useState<number | null>(null);
 
-  // Для совместимости с прежним UI
+  // для совместимости с прежним UI
   const [quota] = useState<Quota | null>(null);
   const [paywalled] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -33,30 +34,19 @@ export default function Pronunciation() {
   const chunksRef = useRef<Blob[]>([]);
 
   const fmtReset = (ts?: number) =>
-    ts
-      ? new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(ts))
-      : "в следующем месяце";
+    ts ? new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(ts)) : "в следующем месяце";
 
   const pct = quota ? Math.min(100, Math.round((quota.used / Math.max(1, quota.limit)) * 100)) : 0;
 
-  // --- Проверка, что строка выглядит как краткая финская фраза ---
+  // проверка, что строка похожа на короткую финскую фразу
   function looksFinnish(s: string) {
     const txt = (s || "").trim();
-
-    // кириллица — сразу мимо
-    if (/[а-яё]/i.test(txt)) return false;
-
-    // должна быть латиница и/или финские ä/ö/å
-    if (!/[a-zäöå]/i.test(txt)) return false;
-
-    // не длиннее 10 слов
-    if (txt.split(/\s+/).length > 10) return false;
-
-    // не пустая
     if (!txt) return false;
-
+    if (/[а-яё]/i.test(txt)) return false;          // нет кириллицы
+    if (!/[a-zäöå]/i.test(txt)) return false;       // есть латиница/ä/ö/å
+    if (txt.split(/\s+/).length > 10) return false; // не слишком длинно
     return true;
-  }
+    }
 
   async function getPhrase() {
     setTouched(true);
@@ -67,54 +57,31 @@ export default function Pronunciation() {
     setErr(null);
 
     try {
-      const engine = await getEngine();
+      const text = await chat(
+        [
+          { role: "system", content: "Ты — преподаватель финского языка." },
+          {
+            role: "user",
+            content:
+              "Дай ОДНУ ОЧЕНЬ простую повседневную фразу УРОВНЯ A1 на финском, строго 2–4 слова. " +
+              "Только латиница и финские ä/ö/å. Без перевода, кавычек и комментариев.",
+          },
+        ],
+        { temperature: 0.7, max_tokens: 16 }
+      );
 
-      // до 3 попыток добиться финской короткой фразы
-      let phrase = "";
-      for (let attempt = 0; attempt < 3; attempt++) {
-        const res: any = await engine.chat.completions.create({
-          messages: [
-            {
-              role: "system",
-              // Дублируем требования на финском и русском
-              content:
-                "Olet suomen kielen opettaja. Palauta TÄSMÄLLEEN YKSI lyhyt arkinen lause SUOMEKSI. " +
-                "Ei käännöstä, ei selityksiä, ei lainausmerkkejä.\n" +
-                "Ты — преподаватель финского. Верни РОВНО ОДНУ короткую повседневную фразу ТОЛЬКО НА ФИНСКОМ. " +
-                "Без перевода и комментариев. Никаких кавычек.",
-            },
-            { role: "user", content: "Anna yksi lyhyt arkinen lause suomeksi." },
-          ],
-          temperature: 0.4,
-          max_tokens: 20,
-        });
-
-        const raw =
-          res?.choices?.[0]?.message?.content ??
-          res?.choices?.[0]?.text ??
-          res?.output_text ??
-          "";
-
-        // чистим кавычки, пробелы, завершающие знаки
-        phrase = String(raw)
-          .replace(/^['"«»\s]+|['"«»\s]+$/g, "")
-          .replace(/[.?!]+$/, "")
-          .trim();
-
-        if (looksFinnish(phrase)) break;
-        phrase = ""; // попробуем ещё
-      }
-
-      setTarget(phrase || pickFallback());
+      const clean = String(text).replace(/^['\"«»]+|['\"«»]+$/g, "").trim();
+      setTarget(looksFinnish(clean) ? clean : pickFallback());
     } catch (e: any) {
       console.error("[Pronunciation.getPhrase] error:", e);
-      setErr(e?.message || "Ошибка локальной модели");
+      setErr(e?.message || "Ошибка сервера");
+      setTarget(pickFallback());
     } finally {
       setLoadingPhrase(false);
     }
   }
 
-  // Простейшая «оценка» похожести
+  // простая «оценка» похожести
   function simpleScore(hyp: string) {
     const norm = (s: string) => s.toLowerCase().replace(/[^a-zäöå\s.]/gi, "").trim();
     const a = norm(target);
@@ -161,9 +128,7 @@ export default function Pronunciation() {
 
       const prevOnStop = (rec.onstop as ((this: MediaRecorder, ev: Event) => any) | null) ?? null;
       rec.onstop = (e: Event) => {
-        try {
-          r.stop();
-        } catch {}
+        try { r.stop(); } catch {}
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         setAudioURL(URL.createObjectURL(blob));
         prevOnStop?.call(rec, e);

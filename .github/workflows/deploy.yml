@@ -18,15 +18,6 @@ env:
   CUSTOM_DOMAIN: "www.maafinn.com"
   ENABLE_HEADERS: "0"
   CNAME_DOMAIN: "www.maafinn.com"
-
-  NEXT_PUBLIC_AI_DISABLED: "0"
-  NEXT_PUBLIC_WASM_THREADS: "1"
-
-  # 1B, чтобы без LFS
-  NEXT_PUBLIC_MLC_MODEL: Llama-3.2-1B-Instruct-q4f32_1-MLC
-  NEXT_PUBLIC_MLC_MODEL_URL: /models/Llama-3.2-1B-Instruct-q4f32_1-MLC/
-
-  NODE_OPTIONS: --max_old_space_size=4096
   NEXT_PUBLIC_BUILD_SHA: ${{ github.sha }}
   NEXT_PUBLIC_BUILD_TIME: ${{ github.run_started_at }}
   NEXT_PUBLIC_YM_ID: ${{ secrets.YM_ID }}
@@ -35,58 +26,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
-      - name: Install deps
-        run: npm ci
-
-      - name: Download MLC model (1B)
-        env:
-          MLC_MODEL_ID: mlc-ai/${{ env.NEXT_PUBLIC_MLC_MODEL }}
-        run: node scripts/download-mlc-model.mjs
-
-      - name: Strip server routes for static export
-        run: |
-          if [ -d "app/api" ]; then
-            rm -rf app/api
-            echo "Removed app/api for static export"
-          fi
-
-      - name: Next.js build
-        run: npx next build
-
-      - name: Next.js export (static)
-        run: |
-          set -e
-          npx next export 2>&1 | tee export.log
-
-      - name: Ensure out dir exists
-        run: mkdir -p out
-
-      - name: Fail if out is empty
-        run: |
-          test -f out/index.html || { echo "No out/index.html after export. Ensure output:'export'."; exit 1; }
-
-      - name: Create CNAME (custom domain)
-        if: ${{ env.CNAME_DOMAIN != '' }}
+      - run: npm ci
+      - run: npx next build
+      - run: npx next export
+      - run: mkdir -p out
+      - run: test -f out/index.html || { echo "No out/index.html"; exit 1; }
+      - if: ${{ env.CNAME_DOMAIN != '' }}
         run: echo "${{ env.CNAME_DOMAIN }}" > out/CNAME
-
-      - name: Upload export log on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: next-export-log
-          path: export.log
-
-      - name: Upload artifact (site)
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: ./out
 
@@ -97,6 +49,5 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
