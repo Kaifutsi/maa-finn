@@ -1,13 +1,19 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { Mic, Square, Volume2, RefreshCw } from "lucide-react";
+import { useState, useRef, useMemo } from "react";
+import { Mic, Square, Volume2, RefreshCw, Info } from "lucide-react";
 import { chat } from "@/lib/ai";
+import { remaining, incQuota, LIMIT_MSG } from "@/lib/quota";
 
 type Quota = { limit: number; used: number; remaining: number; resetAt: number };
 
 export default function Pronunciation() {
-  // офлайн-пул на случай любых ошибок
+  const blacklist = useMemo(() => new Set([
+    "hyvää päivää",
+    "hei",
+    "moi",
+  ]), []);
+
   const fallbackPool = [
     "Hei! Mitä kuuluu?",
     "Minä puhun vähän.",
@@ -23,33 +29,30 @@ export default function Pronunciation() {
   const [audioURL, setAudioURL] = useState<string | null>(null);
   const [transcript, setTranscript] = useState<string>("");
   const [score, setScore] = useState<number | null>(null);
+  const [left, setLeft] = useState<number>(remaining());
 
-  // для совместимости с прежним UI
-  const [quota] = useState<Quota | null>(null);
-  const [paywalled] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
-
   const mediaRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
-  const fmtReset = (ts?: number) =>
-    ts ? new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long" }).format(new Date(ts)) : "в следующем месяце";
-
-  const pct = quota ? Math.min(100, Math.round((quota.used / Math.max(1, quota.limit)) * 100)) : 0;
-
-  // проверка, что строка похожа на короткую финскую фразу
   function looksFinnish(s: string) {
     const txt = (s || "").trim();
     if (!txt) return false;
-    if (/[а-яё]/i.test(txt)) return false;          // нет кириллицы
-    if (!/[a-zäöå]/i.test(txt)) return false;       // есть латиница/ä/ö/å
-    if (txt.split(/\s+/).length > 10) return false; // не слишком длинно
+    if (/[а-яё]/i.test(txt)) return false;
+    if (!/[a-zäöå]/i.test(txt)) return false;
+    const words = txt.split(/\s+/);
+    if (words.length > 6) return false;          // ещё короче
     return true;
-    }
+  }
 
   async function getPhrase() {
     setTouched(true);
+    if (left <= 0) {
+      setErr(LIMIT_MSG);
+      return;
+    }
+
     setLoadingPhrase(true);
     setScore(null);
     setTranscript("");
@@ -63,15 +66,27 @@ export default function Pronunciation() {
           {
             role: "user",
             content:
-              "Дай ОДНУ ОЧЕНЬ простую повседневную фразу УРОВНЯ A1 на финском, строго 2–4 слова. " +
-              "Только латиница и финские ä/ö/å. Без перевода, кавычек и комментариев.",
+              `Дай ОДНУ очень простую повседневную фразу УРОВНЯ A1 на финском, строго 2–4 слова.
+               Не повторяй предыдущее: "${target}".
+               Избегай банальных приветствий вроде "Hyvää päivää", "Hei", "Moi".
+               Только финский, без перевода, без кавычек, без комментариев.`,
           },
         ],
-        { temperature: 0.7, max_tokens: 16 }
+        { temperature: 0.9, max_tokens: 16 }
       );
 
-      const clean = String(text).replace(/^['\"«»]+|['\"«»]+$/g, "").trim();
-      setTarget(looksFinnish(clean) ? clean : pickFallback());
+      const clean = String(text).replace(/^['"«»]+|['"«»]+$/g, "").trim();
+      const lc = clean.toLowerCase();
+
+      const acceptable =
+        looksFinnish(clean) &&
+        lc !== target.toLowerCase() &&
+        !blacklist.has(lc);
+
+      setTarget(acceptable ? clean : pickFallback());
+      setLeft(remaining());            // показать актуальное
+      incQuota();                      // списали 1 запрос
+      setLeft(remaining());
     } catch (e: any) {
       console.error("[Pronunciation.getPhrase] error:", e);
       setErr(e?.message || "Ошибка сервера");
@@ -81,7 +96,6 @@ export default function Pronunciation() {
     }
   }
 
-  // простая «оценка» похожести
   function simpleScore(hyp: string) {
     const norm = (s: string) => s.toLowerCase().replace(/[^a-zäöå\s.]/gi, "").trim();
     const a = norm(target);
@@ -97,7 +111,6 @@ export default function Pronunciation() {
     setScore(null);
     setTranscript("");
     setAudioURL(null);
-
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const rec = new MediaRecorder(stream);
     mediaRef.current = rec;
@@ -112,7 +125,6 @@ export default function Pronunciation() {
     rec.start();
     setRecording(true);
 
-    // Web Speech API
     // @ts-ignore
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SR) {
@@ -154,21 +166,14 @@ export default function Pronunciation() {
       <div className="rounded-3xl p-6 md:p-10 bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 shadow grid md:grid-cols-[1.2fr,1fr] gap-6 items-center">
         <div>
           <h3 className="text-2xl font-extrabold">Произношение с ИИ</h3>
-          <p className="opacity-80 mt-2">Каждый раз — новая финская фраза уровня A1–A2.</p>
+          <p className="opacity-80 mt-2">Каждый раз — новая простая финская фраза уровня A1.</p>
 
-          {touched && paywalled && quota && (
-            <div className="mt-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/40 p-4">
-              <div className="text-sm text-slate-700 dark:text-slate-300">
-                Лимит запросов исчерпан. Сброс — <span className="font-medium">{fmtReset(quota.resetAt)}</span>.
-              </div>
-              <div className="mt-2 h-2 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-sky-500 to-indigo-600 transition-[width] duration-500" style={{ width: `${pct}%` }} />
-              </div>
-            </div>
-          )}
+          <div className="mt-2 text-xs opacity-70 flex items-center gap-1">
+            <Info className="w-3 h-3" /> Осталось: {left}/5
+          </div>
 
-          {touched && err && !paywalled && (
-            <div className="mt-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/40 p-3 text-sm text-slate-700 dark:text-slate-300">
+          {err && (
+            <div className="mt-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/40 p-3 text-sm text-slate-700 dark:text-slate-300">
               {err}
             </div>
           )}

@@ -1,18 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { MessageCircle, Search } from "lucide-react";
+import { MessageCircle, Search, Info } from "lucide-react";
 import { chat } from "@/lib/ai";
+import { remaining, incQuota, LIMIT_MSG } from "@/lib/quota";
 
 export default function AIWidget() {
   const [q, setQ] = useState("");
   const [a, setA] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [left, setLeft] = useState<number>(remaining());
 
   async function ask(prefix?: string) {
     const question = (prefix ? `${prefix}: ` : "") + (q || "");
     if (!question.trim()) return;
+
+    if (left <= 0) {
+      setErr(LIMIT_MSG);
+      return;
+    }
 
     setLoading(true);
     setErr(null);
@@ -20,17 +27,23 @@ export default function AIWidget() {
 
     try {
       const sys =
-        "Ты — дружелюбный преподаватель финского языка. Отвечай КОРОТКО и ТОЛЬКО на финском, можно короткое русское пояснение при необходимости.";
+        "Ты — дружелюбный преподаватель финского языка. " +
+        "Отвечай КОРОТКО и ВСЕГДА НА РУССКОМ. " +
+        "Обязательно приводи 1–3 кратких примера НА ФИНСКОМ (с переводом в скобках). " +
+        "Если просят упражнения — дай 3–5 очень коротких пунктов. " +
+        "Избегай длинных вступлений.";
 
       const text = await chat(
         [
           { role: "system", content: sys },
           { role: "user", content: question },
         ],
-        { temperature: 0.5, max_tokens: 256 }
+        { temperature: 0.5, max_tokens: 300 }
       );
 
       setA(text);
+      setLeft(incQuota().limit - incQuota().used + 1); // аккуратно обновим счётчик
+      setLeft(remaining());
     } catch (e: any) {
       setErr(e?.message || "Ошибка сервера");
     } finally {
@@ -43,6 +56,9 @@ export default function AIWidget() {
       <div className="flex items-center gap-2 mb-2">
         <MessageCircle className="w-5 h-5" />
         <b>ИИ-помощник</b>
+        <span className="ml-auto text-xs opacity-70 flex items-center gap-1">
+          <Info className="w-3 h-3" /> Осталось: {left}/5
+        </span>
       </div>
 
       <div className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
@@ -50,7 +66,7 @@ export default function AIWidget() {
           <Search className="w-4 h-4" />
           <input
             className="w-full bg-transparent outline-none text-sm"
-            placeholder="Kysymys: Когда использовать пассив в имперфекте?"
+            placeholder="Спроси по-русски: «Как образуется пассив имперфекта?»"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && ask()}
@@ -74,14 +90,14 @@ export default function AIWidget() {
           )}
 
           {!loading && !a && !err && (
-            <p className="text-slate-500">Попробуй «Как образуется пассив имперфекта?»</p>
+            <p className="text-slate-500">Например: «Дай простые примеры про падеж Partitiivi»</p>
           )}
         </div>
       </div>
 
       <div className="mt-3 flex gap-2 text-xs">
         <button
-          onClick={() => ask("Сделай 5 коротких упражнений по теме PASSIIVI")}
+          onClick={() => ask("Сделай 5 очень коротких упражнений по теме PASSIIVI")}
           className="px-3 py-1 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-white/60 dark:hover:bg-slate-900/40"
         >
           Упражнения
