@@ -23,7 +23,6 @@ env:
   NEXT_PUBLIC_YM_ID: ${{ secrets.YM_ID }}
   NEXT_PUBLIC_API_BASE: "https://maafinn-api.maafinn.workers.dev"
 
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -34,12 +33,28 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npx next build
-      - run: npx next export
+
+      - name: Next.js build
+        run: npx next build 2>&1 | tee build.log
+
+      - name: Next.js export
+        run: npx next export 2>&1 | tee export.log
+
       - run: mkdir -p out
       - run: test -f out/index.html || { echo "No out/index.html"; exit 1; }
+
       - if: ${{ env.CNAME_DOMAIN != '' }}
         run: echo "${{ env.CNAME_DOMAIN }}" > out/CNAME
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-logs
+          path: |
+            build.log
+            export.log
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./out
