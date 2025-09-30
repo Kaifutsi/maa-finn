@@ -2,7 +2,7 @@ const LIMIT = 5;
 const KEY = "aiQuota:v1";
 
 export const LIMIT_MSG =
-  "Лимит бесплатных запросов (5 в месяц) исчерпан. Попробуй в следующем месяце!";
+  "У тебя закончились 5 бесплатных запросов на этот месяц 🚫. Попробуй снова в следующем месяце!";
 
 type Quota = { month: string; used: number; limit: number };
 

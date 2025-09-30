@@ -78,8 +78,12 @@ export default function AIWidget() {
           {loading && <p className="animate-pulse">Думаю…</p>}
 
           {err && (
-            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-900/40 p-2 text-[13px] text-slate-700 dark:text-slate-300">
-              {err}
+            <div className="mt-3 flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 dark:border-amber-600 dark:bg-amber-900/30 p-4 shadow-sm">
+              <span className="text-amber-500 text-lg">⚠️</span>
+              <div className="text-sm text-slate-800 dark:text-slate-200">
+                <b className="block mb-1">Лимит исчерпан</b>
+                <p>{err}</p>
+              </div>
             </div>
           )}
 
