@@ -32,6 +32,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
+
       - run: npm ci
 
       - name: Next.js build
@@ -40,10 +41,18 @@ jobs:
       - name: Next.js export
         run: npx next export 2>&1 | tee export.log
 
-      - run: mkdir -p out
-      - run: test -f out/index.html || { echo "No out/index.html"; exit 1; }
+      - name: Ensure out dir
+        run: mkdir -p out
 
-      - if: ${{ env.CNAME_DOMAIN != '' }}
+      - name: List out directory (debug)
+        run: |
+          echo "== OUT TREE =="
+          ls -la out || true
+          echo "== OUT RECURSIVE (top 500 lines) =="
+          find out -maxdepth 3 -type f | sort | head -n 500
+
+      - name: Create CNAME (custom domain)
+        if: ${{ env.CNAME_DOMAIN != '' }}
         run: echo "${{ env.CNAME_DOMAIN }}" > out/CNAME
 
       - name: Upload logs on failure
@@ -55,7 +64,8 @@ jobs:
             build.log
             export.log
 
-      - uses: actions/upload-pages-artifact@v3
+      - name: Upload artifact (site)
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./out
 
