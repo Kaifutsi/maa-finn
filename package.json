@@ -7,22 +7,29 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "export": "next export",
+    "build:static": "next build && next export",
+    "sitemap": "next-sitemap --config next-sitemap.config.mjs",
+    "postexport": "next-sitemap --config next-sitemap.config.mjs",
     "preview": "npx serve out",
     "lint": "next lint",
     "types:check": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "lucide-react": "^0.544.0",
     "next": "15.4.6",
+    "next-sitemap": "^4.2.3",
     "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "lucide-react": "^0.544.0"
+    "react-dom": "19.1.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
-    "@tailwindcss/postcss": "^4"
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.18"
   }
 }
