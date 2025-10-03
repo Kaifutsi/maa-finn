@@ -82,7 +82,7 @@ export default function Header() {
           <div className="w-10 h-10 rounded-2xl bg-white shadow grid place-items-center transition group-hover:ring-2 ring-sky-300 overflow-hidden">
             {/* логотип во весь контейнер */}
             <img
-              src="/og-cover.png"
+              src="/logo_maafinn.JPG"
               alt="MaaFinn logo"
               className="w-full h-full object-contain"
             />
