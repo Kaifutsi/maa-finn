@@ -79,8 +79,12 @@ export default function Header() {
 
         {/* Brand */}
         <Link href="/" className="flex items-center gap-3 group" aria-label="На главную">
-          <div className="w-10 h-10 rounded-2xl bg-white shadow grid place-items-center transition group-hover:ring-2 ring-sky-300">
-            <span className="text-xl">🇫🇮</span>
+          <div className="w-10 h-10 rounded-2xl bg-white shadow grid place-items-center transition group-hover:ring-2 ring-sky-300 overflow-hidden">
+            <img
+              src="/logo_maafinn.JPG"
+              alt="MaaFinn logo"
+              className="w-8 h-8 object-contain"
+            />
           </div>
           <div>
             <h1 className="text-xl font-bold tracking-tight transition group-hover:underline underline-offset-4 decoration-sky-400/60">
