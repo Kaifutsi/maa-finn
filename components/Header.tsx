@@ -1,10 +1,10 @@
-// components/Header.tsx
 "use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Menu, X, Search } from "lucide-react";
+import { FaInstagram } from "react-icons/fa";
 
 type NavItem = { href: string; label: string };
 
@@ -80,10 +80,11 @@ export default function Header() {
         {/* Brand */}
         <Link href="/" className="flex items-center gap-3 group" aria-label="На главную">
           <div className="w-10 h-10 rounded-2xl bg-white shadow grid place-items-center transition group-hover:ring-2 ring-sky-300 overflow-hidden">
+            {/* логотип во весь контейнер */}
             <img
-              src="/logo_maafinn.JPG"
+              src="/og-cover.png"
               alt="MaaFinn logo"
-              className="w-8 h-8 object-contain"
+              className="w-full h-full object-contain"
             />
           </div>
           <div>
@@ -103,6 +104,18 @@ export default function Header() {
 
         {/* right side */}
         <div className="ml-auto flex items-center gap-2">
+          {/* Instagram link (desktop) */}
+          <a
+            href="https://www.instagram.com/maa__finn/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden sm:inline-flex p-2 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-white/60 dark:hover:bg-slate-900/40 text-slate-600 hover:text-pink-600 transition"
+            aria-label="Instagram maa_finn"
+            title="Мы в Instagram"
+          >
+            <FaInstagram className="w-5 h-5" />
+          </a>
+
           {/* search */}
           <div className="relative hidden sm:flex items-center">
             <Search className="w-4 h-4 absolute left-3 pointer-events-none text-slate-500" />
@@ -156,6 +169,19 @@ export default function Header() {
                 <NavLink key={item.href} item={item} />
               ))}
             </nav>
+
+            {/* Instagram link (mobile) */}
+            <a
+              href="https://www.instagram.com/maa__finn/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-white/70 dark:hover:bg-slate-900/50"
+              aria-label="Instagram maa_finn"
+              title="Мы в Instagram"
+            >
+              <FaInstagram className="w-4 h-4" />
+              <span>@maa__finn</span>
+            </a>
           </div>
         </div>
       )}
