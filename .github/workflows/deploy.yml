@@ -28,6 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -35,37 +36,26 @@ jobs:
 
       - run: npm ci
 
+      # Собираем сайт (c output: "export" в next.config.js это кладёт сайт в out/)
       - name: Next.js build
-        run: npx next build 2>&1 | tee build.log
+        run: npm run build
 
-      - name: Next.js export
-        run: npx next export 2>&1 | tee export.log
+      # Генерим sitemap.xml и robots.txt в out/ (по next-sitemap.config.cjs)
+      - name: Generate sitemap & robots
+        run: npm run sitemap
 
-      - name: Ensure out dir
-        run: mkdir -p out
-
-      - name: List out directory (debug)
-        run: |
-          echo "== OUT TREE =="
-          ls -la out || true
-          echo "== OUT RECURSIVE (top 500 lines) =="
-          find out -maxdepth 3 -type f | sort | head -n 500
-
-      - name: Create CNAME (custom domain)
-        if: ${{ env.CNAME_DOMAIN != '' }}
+      # (опционально) Положим CNAME
+      - if: ${{ env.CNAME_DOMAIN != '' }}
         run: echo "${{ env.CNAME_DOMAIN }}" > out/CNAME
 
-      - name: Upload logs on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: next-logs
-          path: |
-            build.log
-            export.log
+      # Быстрые проверки, чтобы не уехать без файлов
+      - name: Verify sitemap/robots present
+        run: |
+          ls -la out | grep -E 'sitemap|robots' || true
+          test -f out/sitemap.xml
+          test -f out/robots.txt
 
-      - name: Upload artifact (site)
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: ./out
 
