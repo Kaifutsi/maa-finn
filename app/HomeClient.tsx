@@ -472,7 +472,8 @@ export default function HomeClient() {
         {/* Topic CTA */}
         <div className="mt-6 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 shadow-sm">
           <div className="p-5 md:p-6 flex flex-col md:flex-row md:items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-r from-blue-500 to-emerald-500 flex items-center justify-center shadow">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 via-sky-600 to-indigo-600
+                            flex items-center justify-center shadow ring-1 ring-sky-200/50 dark:ring-0">
               <BookOpen className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1">
