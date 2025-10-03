@@ -6,10 +6,8 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
-    "export": "next export",
-    "build:static": "next build && next export",
-    "sitemap": "next-sitemap --config next-sitemap.config.mjs",
-    "postexport": "next-sitemap --config next-sitemap.config.mjs",
+    "build:static": "next build && npm run sitemap",
+    "sitemap": "next-sitemap --config next-sitemap.config.cjs",
     "preview": "npx serve out",
     "lint": "next lint",
     "types:check": "tsc -p tsconfig.json --noEmit"
