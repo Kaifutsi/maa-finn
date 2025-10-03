@@ -43,7 +43,7 @@ export const metadata: Metadata = {
       "Карточки, словарь, грамматика и тренажёры для изучения финского языка.",
     images: [
       {
-        url: "/og-cover.png", // положи 1200x630 в public/og-cover.png
+        url: "/logo_maafinn.JPG", // положи 1200x630 в public/og-cover.png
         width: 1200,
         height: 630,
         alt: "MaaFinn — Финский язык онлайн",
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     title: "MaaFinn — Финский язык онлайн",
     description:
       "Карточки, словарь, грамматика и тренажёры для изучения финского языка.",
-    images: ["/og-cover.png"],
+    images: ["/logo_maafinn.JPG"],
   },
   // Можно позже добавить verification для сервисов вебмастеров
   // verification: { google: "..." },
