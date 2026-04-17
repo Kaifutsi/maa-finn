@@ -1,363 +1,471 @@
-export const metadata = {
+import type { Metadata } from "next";
+import Link from "next/link";
+import {
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  GraduationCap,
+  Languages,
+  PenTool,
+  SpellCheck,
+} from "lucide-react";
+
+export const metadata: Metadata = {
   title: "Финский алфавит для начинающих: буквы, звуки и правила чтения",
   description:
     "Разберите финский алфавит с нуля. Буквы, звуки, особенности ä, ö, y, примеры слов и правила чтения для начинающих.",
 };
 
+type RelatedCard = {
+  href: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+};
+
+const relatedCards: RelatedCard[] = [
+  {
+    href: "/lessons/finnish-pronunciation",
+    title: "Финское произношение",
+    description: "После алфавита логично перейти к правилам чтения и звучанию слов.",
+    icon: <PenTool className="h-5 w-5" />,
+  },
+  {
+    href: "/lessons/finnish-for-beginners",
+    title: "Финский для начинающих",
+    description: "Общий маршрут для старта: что учить после букв и звуков.",
+    icon: <GraduationCap className="h-5 w-5" />,
+  },
+  {
+    href: "/dictionary/common-words",
+    title: "Частые слова на финском",
+    description: "Тренируй чтение на самых нужных словах для начинающих.",
+    icon: <Languages className="h-5 w-5" />,
+  },
+  {
+    href: "/grammar/finnish-vowel-harmony",
+    title: "Гармония гласных",
+    description: "Полезная тема, если хочешь глубже понять звучание и окончания слов.",
+    icon: <BookOpen className="h-5 w-5" />,
+  },
+];
+
+const vowelRows = [
+  ["a", "auto", "машина"],
+  ["e", "ele", "жест"],
+  ["i", "ilta", "вечер"],
+  ["o", "omena", "яблоко"],
+  ["u", "uni", "сон"],
+  ["y", "yksi", "один"],
+  ["ä", "äiti", "мама"],
+  ["ö", "työ", "работа"],
+];
+
+const importantConsonants = [
+  ["k", "kala", "рыба"],
+  ["t", "talo", "дом"],
+  ["p", "pieni", "маленький"],
+  ["j", "juna", "поезд"],
+  ["v", "vesi", "вода"],
+  ["h", "halu", "желание"],
+];
+
+function SectionTitle({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <h2 className={`text-2xl md:text-3xl font-extrabold tracking-tight ${className}`}>
+      {children}
+    </h2>
+  );
+}
+
 export default function Page() {
   return (
-    <div className="prose max-w-3xl mx-auto py-10">
-      <h1>Финский алфавит для начинающих: буквы, звуки и правила чтения</h1>
+    <main className="pb-14">
+      <section className="relative overflow-hidden border-b border-slate-200 bg-[radial-gradient(60%_40%_at_20%_-10%,#dff0ff_0%,transparent_70%),radial-gradient(50%_30%_at_100%_0%,#eef4ff_0%,transparent_60%)] dark:border-slate-800 dark:bg-slate-950">
+        <div className="max-w-6xl mx-auto px-4 py-10 md:py-14">
+          <div className="max-w-4xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs uppercase tracking-widest text-sky-700 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:text-sky-300">
+              <SpellCheck className="h-3.5 w-3.5" />
+              База для чтения слов
+            </div>
 
-      <p>
-        Финский алфавит - одна из первых тем, с которой стоит начать изучение
-        языка. Если сразу понять, как выглядят и звучат финские буквы, дальше
-        будет намного легче читать слова, учить лексику и разбирать
-        произношение.
-      </p>
+            <h1 className="mt-4 max-w-4xl text-4xl font-extrabold leading-tight text-slate-950 md:text-6xl dark:text-white">
+              Финский алфавит:{" "}
+              <span className="bg-gradient-to-r from-sky-600 to-indigo-600 bg-clip-text text-transparent">
+                буквы, звуки и старт для чтения
+              </span>
+            </h1>
 
-      <p>
-        На этой странице ты найдёшь понятное объяснение финского алфавита для
-        начинающих: какие буквы в нём используются, как они читаются, чем
-        отличаются звуки <strong>ä</strong>, <strong>ö</strong> и{" "}
-        <strong>y</strong>, и почему алфавит в финском языке проще, чем может
-        показаться на старте.
-      </p>
+            <p className="mt-5 max-w-3xl text-base leading-8 text-slate-600 md:text-lg dark:text-slate-300">
+              Финский алфавит — одна из первых тем, с которой стоит начать
+              изучение языка. Если сразу понять, как выглядят и звучат финские
+              буквы, дальше будет намного легче читать слова, учить лексику и
+              разбирать произношение.
+            </p>
 
-      <h2>Сколько букв в финском алфавите</h2>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link
+                href="/lessons/finnish-pronunciation"
+                className="inline-flex items-center gap-2 rounded-2xl bg-sky-600 px-5 py-3 text-sm font-medium text-white shadow hover:bg-sky-700 transition"
+              >
+                Перейти к произношению
+              </Link>
 
-      <p>
-        В основе финского алфавита лежит латиница. В повседневном финском языке
-        используется набор букв, который знаком многим по английскому, но с
-        важными особенностями.
-      </p>
+              <Link
+                href="/dictionary/common-words"
+                className="inline-flex items-center gap-2 rounded-2xl border border-slate-300 bg-white/80 px-5 py-3 text-sm font-medium text-slate-900 hover:bg-white dark:border-slate-700 dark:bg-slate-900/60 dark:text-white dark:hover:bg-slate-900"
+              >
+                Тренировать слова
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <p>
-        Для начинающего главное запомнить, что кроме привычных букв в финском
-        языке особенно важны:
-      </p>
+      <section className="max-w-6xl mx-auto px-4 pt-8">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 md:p-6">
+          <div className="max-w-3xl">
+            <div className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              Полезно изучать рядом
+            </div>
+            <SectionTitle className="mt-2">
+              Что поможет быстрее освоить алфавит
+            </SectionTitle>
+            <p className="mt-3 text-slate-600 dark:text-slate-300">
+              Алфавит сам по себе полезен, но настоящий результат приходит,
+              когда ты сразу связываешь буквы со звучанием слов, базовой
+              лексикой и стартовыми уроками.
+            </p>
+          </div>
 
-      <ul>
-        <li>ä</li>
-        <li>ö</li>
-        <li>y</li>
-      </ul>
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {relatedCards.map((card) => (
+              <Link
+                key={card.href}
+                href={card.href}
+                className="group rounded-2xl border border-slate-200 bg-slate-50/80 p-4 transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-950/50"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">
+                    {card.icon}
+                  </div>
+                  <div className="font-semibold text-slate-900 dark:text-white">
+                    {card.title}
+                  </div>
+                </div>
 
-      <p>
-        Именно они часто вызывают вопросы у тех, кто только начал учить
-        финский. Но после нескольких дней практики эти буквы уже не кажутся
-        странными.
-      </p>
+                <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                  {card.description}
+                </p>
 
-      <h2>Финский алфавит по порядку</h2>
+                <div className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-sky-700 dark:text-sky-300">
+                  Открыть страницу
+                  <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
-      <p>
-        Ниже - базовый ряд букв, который полезно видеть перед глазами на старте:
-      </p>
+      <section className="max-w-6xl mx-auto px-4 pt-10">
+        <div className="grid gap-8 lg:grid-cols-[1.15fr,0.85fr]">
+          <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 md:p-8">
+            <SectionTitle>Сколько букв в финском алфавите</SectionTitle>
 
-      <p>
-        A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X,
-        Y, Z, Å, Ä, Ö
-      </p>
+            <p className="mt-4 text-slate-700 leading-8 dark:text-slate-300">
+              В основе финского алфавита лежит латиница. Для начинающего
+              главное — не заучивать весь набор механически, а понять, какие
+              буквы реально важны в повседневных словах и как они читаются.
+            </p>
 
-      <p>
-        При этом не все буквы одинаково важны для повседневного финского языка.
-        Некоторые встречаются в основном в заимствованиях, иностранных именах и
-        отдельных специальных словах.
-      </p>
+            <p className="mt-4 text-slate-700 leading-8 dark:text-slate-300">
+              Особенно важно запомнить, что в финском языке часто встречаются
+              буквы <strong>ä</strong>, <strong>ö</strong> и <strong>y</strong>.
+              Именно они сначала кажутся непривычными, но быстро становятся
+              понятными через практику.
+            </p>
 
-      <h2>Какие буквы в финском языке самые важные для начинающих</h2>
+            <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/80 p-5 dark:border-slate-800 dark:bg-slate-950/40">
+              <div className="text-lg font-bold text-slate-900 dark:text-white">
+                Финский алфавит по порядку
+              </div>
+              <p className="mt-3 text-slate-700 leading-7 dark:text-slate-300">
+                A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U,
+                V, W, X, Y, Z, Å, Ä, Ö
+              </p>
+            </div>
 
-      <p>
-        На старте полезнее сосредоточиться не на всём списке сразу, а на тех
-        буквах, которые постоянно встречаются в обычных словах.
-      </p>
+            <SectionTitle className="mt-10">
+              Какие буквы в финском языке самые важные
+            </SectionTitle>
 
-      <ul>
-        <li>a</li>
-        <li>e</li>
-        <li>i</li>
-        <li>o</li>
-        <li>u</li>
-        <li>y</li>
-        <li>ä</li>
-        <li>ö</li>
-        <li>k</li>
-        <li>t</li>
-        <li>p</li>
-        <li>m</li>
-        <li>n</li>
-        <li>l</li>
-        <li>s</li>
-        <li>r</li>
-        <li>h</li>
-        <li>j</li>
-        <li>v</li>
-      </ul>
+            <p className="mt-4 text-slate-700 leading-8 dark:text-slate-300">
+              На старте полезнее сосредоточиться на тех буквах, которые
+              постоянно встречаются в реальных словах:
+            </p>
 
-      <p>
-        Именно эти буквы ты будешь регулярно встречать в базовой лексике,
-        учебных текстах и простых диалогах.
-      </p>
+            <ul className="mt-5 space-y-3 text-slate-700 dark:text-slate-300">
+              <li className="flex gap-3">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                <span>гласные: a, e, i, o, u, y, ä, ö</span>
+              </li>
+              <li className="flex gap-3">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                <span>частые согласные: k, t, p, m, n, l, s, r, h, j, v</span>
+              </li>
+            </ul>
 
-      <h2>Как читаются гласные в финском алфавите</h2>
+            <SectionTitle className="mt-10">
+              Как читаются гласные в финском алфавите
+            </SectionTitle>
 
-      <p>
-        Гласные - ключевая часть финского языка. Они влияют и на произношение, и
-        на грамматику, и на гармонию гласных. Для новичка особенно важно
-        привыкнуть к их стабильному звучанию.
-      </p>
+            <p className="mt-4 text-slate-700 leading-8 dark:text-slate-300">
+              Гласные — ключевая часть финского языка. Они влияют и на
+              произношение, и на грамматику, и на гармонию гласных. Для
+              новичка особенно важно привыкнуть к их стабильному звучанию.
+            </p>
 
-      <ul>
-        <li>
-          <strong>a</strong> - близко к русскому «а»
-        </li>
-        <li>
-          <strong>e</strong> - близко к «э»
-        </li>
-        <li>
-          <strong>i</strong> - как «и»
-        </li>
-        <li>
-          <strong>o</strong> - близко к «о»
-        </li>
-        <li>
-          <strong>u</strong> - близко к «у»
-        </li>
-        <li>
-          <strong>y</strong> - особый передний звук, которого нет в русском в
-          точном виде
-        </li>
-        <li>
-          <strong>ä</strong> - передний звук, близкий к мягкому «э/я»
-        </li>
-        <li>
-          <strong>ö</strong> - звук между «о» и «ё»
-        </li>
-      </ul>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {vowelRows.map(([letter, word, translation]) => (
+                <div
+                  key={letter}
+                  className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-950/40"
+                >
+                  <div className="text-xl font-bold text-slate-900 dark:text-white">
+                    {letter}
+                  </div>
+                  <div className="mt-2 text-slate-700 dark:text-slate-300">
+                    <strong>{word}</strong> — {translation}
+                  </div>
+                </div>
+              ))}
+            </div>
 
-      <p>
-        Буквы <strong>ä</strong>, <strong>ö</strong> и <strong>y</strong> лучше
-        не заменять привычными русскими аналогами «на глаз», а постепенно
-        привыкать к ним через реальные слова и повторение вслух.
-      </p>
+            <p className="mt-5 text-slate-700 leading-8 dark:text-slate-300">
+              Буквы <strong>ä</strong>, <strong>ö</strong> и <strong>y</strong>{" "}
+              лучше не заменять привычными аналогами «на глаз», а постепенно
+              привыкать к ним через реальные слова и повторение вслух.
+            </p>
 
-      <h2>Как читаются согласные в финском языке</h2>
+            <SectionTitle className="mt-10">
+              Как читаются согласные в финском языке
+            </SectionTitle>
 
-      <p>
-        Согласные в финском языке обычно читаются довольно прямо и предсказуемо.
-        Это делает чтение намного проще, чем во многих других языках.
-      </p>
+            <p className="mt-4 text-slate-700 leading-8 dark:text-slate-300">
+              Согласные в финском языке обычно читаются довольно прямо и
+              предсказуемо. Это делает чтение проще, чем во многих других
+              языках.
+            </p>
 
-      <ul>
-        <li>
-          <strong>k</strong> - чёткое «к»
-        </li>
-        <li>
-          <strong>t</strong> - чёткое «т»
-        </li>
-        <li>
-          <strong>p</strong> - чёткое «п»
-        </li>
-        <li>
-          <strong>j</strong> - чаще звучит как «й»
-        </li>
-        <li>
-          <strong>v</strong> - близко к «в»
-        </li>
-        <li>
-          <strong>h</strong> - слышимое «х»
-        </li>
-        <li>
-          <strong>s</strong> - обычно как «с»
-        </li>
-        <li>
-          <strong>r</strong> - раскатистый или чёткий звук «р»
-        </li>
-      </ul>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              {importantConsonants.map(([letter, word, translation]) => (
+                <div
+                  key={`${letter}-${word}`}
+                  className="rounded-2xl border border-slate-200 p-4 dark:border-slate-800"
+                >
+                  <div className="text-lg font-bold text-slate-900 dark:text-white">
+                    {letter}
+                  </div>
+                  <div className="mt-2 text-slate-700 dark:text-slate-300">
+                    <strong>{word}</strong> — {translation}
+                  </div>
+                </div>
+              ))}
+            </div>
 
-      <p>
-        Для новичка важно не только запомнить звучание букв, но и видеть, как
-        они работают внутри коротких слов.
-      </p>
+            <SectionTitle className="mt-10">
+              Особенности букв ä, ö и y
+            </SectionTitle>
 
-      <h2>Примеры слов по финскому алфавиту</h2>
+            <p className="mt-4 text-slate-700 leading-8 dark:text-slate-300">
+              Именно эти буквы делают финский алфавит чуть менее привычным для
+              русскоязычного ученика. Но они же помогают быстрее почувствовать
+              структуру языка.
+            </p>
 
-      <ul>
-        <li>a - auto</li>
-        <li>e - ele</li>
-        <li>i - ilta</li>
-        <li>o - oma</li>
-        <li>u - uni</li>
-        <li>y - yö</li>
-        <li>ä - äiti</li>
-        <li>ö - työ</li>
-      </ul>
+            <div className="mt-5 space-y-4">
+              <div className="rounded-2xl border border-slate-200 p-4 dark:border-slate-800">
+                <div className="text-lg font-bold text-slate-900 dark:text-white">
+                  Буква ä
+                </div>
+                <ul className="mt-3 space-y-1 text-slate-700 dark:text-slate-300">
+                  <li>äiti — мама</li>
+                  <li>päivä — день</li>
+                  <li>hämärä — сумерки</li>
+                </ul>
+              </div>
 
-      <p>
-        Через такие простые примеры легче привыкнуть к буквам и быстрее начать
-        читать без напряжения.
-      </p>
+              <div className="rounded-2xl border border-slate-200 p-4 dark:border-slate-800">
+                <div className="text-lg font-bold text-slate-900 dark:text-white">
+                  Буква ö
+                </div>
+                <ul className="mt-3 space-y-1 text-slate-700 dark:text-slate-300">
+                  <li>työ — работа</li>
+                  <li>yö — ночь</li>
+                  <li>öljy — масло</li>
+                </ul>
+              </div>
 
-      <h2>Особенности букв ä, ö и y</h2>
+              <div className="rounded-2xl border border-slate-200 p-4 dark:border-slate-800">
+                <div className="text-lg font-bold text-slate-900 dark:text-white">
+                  Буква y
+                </div>
+                <ul className="mt-3 space-y-1 text-slate-700 dark:text-slate-300">
+                  <li>yksi — один</li>
+                  <li>ystävä — друг</li>
+                  <li>yö — ночь</li>
+                </ul>
+              </div>
+            </div>
 
-      <p>
-        Именно эти буквы делают финский алфавит чуть менее привычным для
-        русскоязычного ученика. Но они же и помогают быстрее почувствовать
-        структуру языка.
-      </p>
+            <SectionTitle className="mt-10">
+              Почему важно учить алфавит вместе с произношением
+            </SectionTitle>
 
-      <h3>Буква ä</h3>
-      <p>
-        Часто встречается в очень распространённых словах. Например:
-      </p>
-      <ul>
-        <li>äiti - мама</li>
-        <li>päivä - день</li>
-        <li>hämärä - сумерки</li>
-      </ul>
+            <p className="mt-4 text-slate-700 leading-8 dark:text-slate-300">
+              Сам по себе список букв мало что даёт, если не связывать его с
+              реальным звучанием слов. Лучше всего учить финский алфавит сразу
+              вместе с чтением вслух, короткими примерами и простыми словами.
+            </p>
 
-      <h3>Буква ö</h3>
-      <p>
-        Тоже очень важна и часто встречается в базовой лексике:
-      </p>
-      <ul>
-        <li>työ - работа</li>
-        <li>yö - ночь</li>
-        <li>öljy - масло</li>
-      </ul>
+            <ol className="mt-5 space-y-3 pl-5 list-decimal text-slate-700 dark:text-slate-300">
+              <li>увидел букву</li>
+              <li>прочитал короткое слово</li>
+              <li>повторил его вслух</li>
+              <li>запомнил через практику</li>
+            </ol>
 
-      <h3>Буква y</h3>
-      <p>
-        Звучит непривычно, но со временем начинает восприниматься естественно:
-      </p>
-      <ul>
-        <li>yksi - один</li>
-        <li>ystävä - друг</li>
-        <li>yö - ночь</li>
-      </ul>
+            <SectionTitle className="mt-10">
+              Частые ошибки начинающих
+            </SectionTitle>
 
-      <h2>Есть ли в финском языке буквы, которые встречаются редко</h2>
+            <ul className="mt-5 space-y-3 text-slate-700 dark:text-slate-300">
+              <li>читать финские слова по правилам английского</li>
+              <li>игнорировать буквы ä, ö и y</li>
+              <li>не читать слова вслух</li>
+              <li>учить алфавит без примеров</li>
+              <li>не замечать длину гласных и согласных</li>
+            </ul>
 
-      <p>
-        Да. Некоторые буквы из латинского алфавита используются в финском языке
-        значительно реже и обычно встречаются в заимствованных словах, именах,
-        названиях брендов и иностранных терминах.
-      </p>
+            <p className="mt-5 text-slate-700 leading-8 dark:text-slate-300">
+              Самая полезная привычка на старте — не просто смотреть на букву,
+              а сразу произносить её в составе реального слова.
+            </p>
+          </article>
 
-      <p>
-        На старте не нужно тратить на них много внимания. Намного полезнее
-        хорошо освоить основные буквы и понять правила чтения самых частых слов.
-      </p>
+          <aside className="space-y-6">
+            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+              <div className="text-sm uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Быстрый маршрут
+              </div>
 
-      <h2>Почему важно учить алфавит вместе с произношением</h2>
+              <div className="mt-3 flex flex-col gap-3">
+                <Link
+                  href="/lessons/finnish-pronunciation"
+                  className="rounded-2xl border border-slate-200 px-4 py-3 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-950/50"
+                >
+                  Финское произношение
+                </Link>
 
-      <p>
-        Сам по себе список букв мало что даёт, если не связывать его с реальным
-        звучанием слов. Лучше всего учить финский алфавит сразу вместе с
-        чтением вслух, короткими примерами и простыми словами.
-      </p>
+                <Link
+                  href="/lessons/finnish-for-beginners"
+                  className="rounded-2xl border border-slate-200 px-4 py-3 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-950/50"
+                >
+                  Финский для начинающих
+                </Link>
 
-      <ul>
-        <li>увидел букву</li>
-        <li>прочитал короткое слово</li>
-        <li>повторил его вслух</li>
-        <li>запомнил через практику</li>
-      </ul>
+                <Link
+                  href="/dictionary/common-words"
+                  className="rounded-2xl border border-slate-200 px-4 py-3 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-950/50"
+                >
+                  Частые слова на финском
+                </Link>
 
-      <p>
-        Такой подход работает намного лучше, чем простое механическое
-        заучивание.
-      </p>
+                <Link
+                  href="/grammar/finnish-vowel-harmony"
+                  className="rounded-2xl border border-slate-200 px-4 py-3 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-950/50"
+                >
+                  Гармония гласных
+                </Link>
+              </div>
+            </div>
 
-      <h2>Как быстрее выучить финский алфавит</h2>
+            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+              <div className="text-lg font-bold text-slate-900 dark:text-white">
+                Что делать после алфавита
+              </div>
 
-      <ol>
-        <li>раздели буквы на гласные и согласные</li>
-        <li>отдельно потренируй ä, ö и y</li>
-        <li>читай короткие слова вслух каждый день</li>
-        <li>не учи буквы в отрыве от слов</li>
-        <li>сочетай алфавит с произношением и лексикой</li>
-      </ol>
+              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                После алфавита лучше всего переходить к произношению, базовым
+                словам и простым правилам чтения. Так обучение идёт намного
+                естественнее и быстрее.
+              </p>
 
-      <p>
-        Даже 10 минут практики в день обычно достаточно, чтобы за короткое
-        время начать уверенно ориентироваться в буквах и звуках.
-      </p>
+              <div className="mt-4 flex flex-col gap-3">
+                <Link
+                  href="/lessons/finnish-pronunciation"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-sky-700 dark:text-sky-300"
+                >
+                  Перейти к произношению <ArrowRight className="h-4 w-4" />
+                </Link>
 
-      <h2>Частые ошибки начинающих</h2>
+                <Link
+                  href="/dictionary/common-words"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-sky-700 dark:text-sky-300"
+                >
+                  Тренировать частые слова <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
 
-      <ul>
-        <li>сразу пытаться читать финские слова по правилам английского</li>
-        <li>игнорировать буквы ä, ö и y</li>
-        <li>не читать слова вслух</li>
-        <li>учить алфавит без примеров</li>
-        <li>не замечать длину гласных и согласных</li>
-      </ul>
+            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+              <div className="text-lg font-bold text-slate-900 dark:text-white">
+                FAQ
+              </div>
 
-      <p>
-        Самая полезная привычка на старте - не просто смотреть на букву, а
-        сразу произносить её в составе реального слова.
-      </p>
+              <div className="mt-4 space-y-4 text-sm">
+                <div>
+                  <div className="font-semibold text-slate-900 dark:text-white">
+                    Сложный ли финский алфавит для русскоязычных?
+                  </div>
+                  <p className="mt-1 text-slate-600 dark:text-slate-300">
+                    Обычно нет. Основная сложность связана не со всем алфавитом,
+                    а с несколькими непривычными буквами и необходимостью
+                    привыкнуть к их звучанию.
+                  </p>
+                </div>
 
-      <h2>Что изучать после финского алфавита</h2>
+                <div>
+                  <div className="font-semibold text-slate-900 dark:text-white">
+                    Какие буквы самые непривычные?
+                  </div>
+                  <p className="mt-1 text-slate-600 dark:text-slate-300">
+                    Чаще всего вопросы вызывают ä, ö и y, но при регулярной
+                    практике они довольно быстро перестают казаться сложными.
+                  </p>
+                </div>
 
-      <p>
-        После алфавита логично перейти к произношению, частотной лексике и
-        базовому курсу для начинающих. Эти страницы помогут связать буквы со
-        словами и начать использовать язык более уверенно.
-      </p>
-
-      <ul>
-        <li>
-          <a href="/lessons/finnish-pronunciation">
-            Финское произношение для начинающих
-          </a>
-        </li>
-        <li>
-          <a href="/lessons/finnish-for-beginners">
-            Финский язык для начинающих
-          </a>
-        </li>
-        <li>
-          <a href="/dictionary/common-words">
-            Самые употребительные слова на финском языке
-          </a>
-        </li>
-        <li>
-          <a href="/grammar/finnish-vowel-harmony">
-            Гармония гласных в финском языке
-          </a>
-        </li>
-      </ul>
-
-      <h2>FAQ</h2>
-
-      <h3>Сколько букв в финском алфавите?</h3>
-      <p>
-        Финский алфавит основан на латинице, но для начинающего особенно важны
-        буквы, которые регулярно встречаются в обычных словах, включая ä, ö и
-        y.
-      </p>
-
-      <h3>Сложный ли финский алфавит для русскоязычных?</h3>
-      <p>
-        Обычно нет. Основная сложность связана не со всем алфавитом, а с
-        несколькими непривычными буквами и необходимостью привыкнуть к их
-        звучанию.
-      </p>
-
-      <h3>Какие буквы в финском языке самые непривычные?</h3>
-      <p>
-        Чаще всего вопросы вызывают ä, ö и y. Но при регулярной практике они
-        довольно быстро перестают казаться сложными.
-      </p>
-
-      <h3>Что лучше учить после алфавита?</h3>
-      <p>
-        После алфавита лучше всего переходить к произношению, базовым словам и
-        простым правилам чтения. Так обучение идёт намного естественнее.
-      </p>
-    </div>
+                <div>
+                  <div className="font-semibold text-slate-900 dark:text-white">
+                    Что лучше учить после алфавита?
+                  </div>
+                  <p className="mt-1 text-slate-600 dark:text-slate-300">
+                    После алфавита лучше всего переходить к произношению,
+                    базовым словам и простым правилам чтения.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
   );
 }
