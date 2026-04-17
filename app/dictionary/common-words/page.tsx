@@ -1,4 +1,16 @@
-export const metadata = {
+import type { Metadata } from "next";
+import Link from "next/link";
+import {
+  ArrowRight,
+  Languages,
+  GraduationCap,
+  BookOpen,
+  PenTool,
+  CheckCircle2,
+  MessageCircleMore,
+} from "lucide-react";
+
+export const metadata: Metadata = {
   title: "Самые употребительные слова на финском языке для начинающих",
   description:
     "Подборка самых частых слов на финском языке для начинающих. Базовая лексика, полезные слова, примеры и простые фразы для старта.",
@@ -12,8 +24,6 @@ const greetings = [
   ["Anteeksi", "извините / простите"],
   ["Kyllä", "да"],
   ["Ei", "нет"],
-  ["Hyvää huomenta", "доброе утро"],
-  ["Hyvää yötä", "спокойной ночи"],
   ["Näkemiin", "до свидания"],
 ];
 
@@ -24,14 +34,11 @@ const commonVerbs = [
   ["syödä", "есть"],
   ["juoda", "пить"],
   ["haluta", "хотеть"],
-  ["asua", "жить / проживать"],
   ["puhua", "говорить"],
-  ["nähdä", "видеть"],
   ["tehdä", "делать"],
 ];
 
 const commonNouns = [
-  ["ihminen", "человек"],
   ["koti", "дом"],
   ["koulu", "школа"],
   ["työ", "работа"],
@@ -39,7 +46,6 @@ const commonNouns = [
   ["aika", "время"],
   ["ruoka", "еда"],
   ["vesi", "вода"],
-  ["ystävä", "друг"],
   ["perhe", "семья"],
 ];
 
@@ -50,24 +56,57 @@ const questionWords = [
   ["milloin", "когда"],
   ["miksi", "почему"],
   ["miten", "как"],
-  ["kuinka", "как / насколько"],
-  ["paljon", "много / сколько"],
 ];
 
-const usefulWords = [
-  ["tänään", "сегодня"],
-  ["huomenna", "завтра"],
-  ["nyt", "сейчас"],
-  ["myös", "тоже"],
-  ["vain", "только"],
-  ["aina", "всегда"],
-  ["joskus", "иногда"],
-  ["hyvä", "хороший"],
-  ["iso", "большой"],
-  ["pieni", "маленький"],
+type RelatedCard = {
+  href: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+};
+
+const relatedCards: RelatedCard[] = [
+  {
+    href: "/lessons/finnish-for-beginners",
+    title: "Финский для начинающих",
+    description: "Пойми, с чего начать и в каком порядке изучать темы.",
+    icon: <GraduationCap className="h-5 w-5" />,
+  },
+  {
+    href: "/lessons/finnish-pronunciation",
+    title: "Финское произношение",
+    description: "Учить слова проще, когда ты понимаешь, как они читаются.",
+    icon: <PenTool className="h-5 w-5" />,
+  },
+  {
+    href: "/grammar/finnish-verbs",
+    title: "Финские глаголы",
+    description: "Свяжи базовые слова с простыми предложениями и фразами.",
+    icon: <BookOpen className="h-5 w-5" />,
+  },
+  {
+    href: "/tests/basic-words-test",
+    title: "Тест на базовые слова",
+    description: "Проверь, какие слова уже запомнил и что стоит повторить.",
+    icon: <CheckCircle2 className="h-5 w-5" />,
+  },
 ];
 
-function WordTable({
+function SectionTitle({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <h2 className={`text-2xl md:text-3xl font-extrabold tracking-tight ${className}`}>
+      {children}
+    </h2>
+  );
+}
+
+function WordCard({
   title,
   items,
 }: {
@@ -75,261 +114,371 @@ function WordTable({
   items: string[][];
 }) {
   return (
-    <>
-      <h2>{title}</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Финское слово</th>
-            <th>Перевод</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map(([fi, ru]) => (
-            <tr key={fi}>
-              <td>{fi}</td>
-              <td>{ru}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </>
+    <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5 dark:border-slate-800 dark:bg-slate-950/40">
+      <h3 className="text-lg font-bold text-slate-900 dark:text-white">{title}</h3>
+
+      <div className="mt-4 grid gap-2">
+        {items.map(([fi, ru]) => (
+          <div
+            key={fi}
+            className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900/70"
+          >
+            <span className="font-semibold text-slate-900 dark:text-white">{fi}</span>
+            <span className="text-sm text-slate-600 dark:text-slate-300">{ru}</span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
 export default function Page() {
   return (
-    <div className="prose max-w-3xl mx-auto py-10">
-      <h1>Самые употребительные слова на финском языке для начинающих</h1>
+    <main className="pb-14">
+      <section className="relative overflow-hidden border-b border-slate-200 bg-[radial-gradient(60%_40%_at_20%_-10%,#dff0ff_0%,transparent_70%),radial-gradient(50%_30%_at_100%_0%,#eef4ff_0%,transparent_60%)] dark:border-slate-800 dark:bg-slate-950">
+        <div className="max-w-6xl mx-auto px-4 py-10 md:py-14">
+          <div className="max-w-4xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs uppercase tracking-widest text-sky-700 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:text-sky-300">
+              <Languages className="h-3.5 w-3.5" />
+              Базовая лексика
+            </div>
 
-      <p>
-        Если ты только начинаешь учить финский язык, лучше всего стартовать не
-        со сложной грамматики, а с самых частых слов. Именно базовая лексика
-        помогает быстрее понимать простые фразы, читать короткие тексты и
-        собирать первые предложения.
-      </p>
+            <h1 className="mt-4 max-w-4xl text-4xl font-extrabold leading-tight text-slate-950 md:text-6xl dark:text-white">
+              Самые употребительные слова на финском языке:{" "}
+              <span className="bg-gradient-to-r from-sky-600 to-indigo-600 bg-clip-text text-transparent">
+                база для начинающих
+              </span>
+            </h1>
 
-      <p>
-        На этой странице собраны самые употребительные слова на финском языке
-        для начинающих: приветствия, глаголы, существительные, вопросительные
-        слова и полезная повседневная лексика. Такой словарный минимум даёт
-        хорошую базу для дальнейшего изучения языка.
-      </p>
+            <p className="mt-5 max-w-3xl text-base leading-8 text-slate-600 md:text-lg dark:text-slate-300">
+              Если ты только начинаешь учить финский язык, лучше всего стартовать
+              с самых частых слов. Именно базовая лексика помогает быстрее понимать
+              простые фразы, читать короткие тексты и собирать первые предложения.
+            </p>
 
-      <h2>Почему стоит начинать с частых слов</h2>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link
+                href="/lessons/finnish-for-beginners"
+                className="inline-flex items-center gap-2 rounded-2xl bg-sky-600 px-5 py-3 text-sm font-medium text-white shadow hover:bg-sky-700 transition"
+              >
+                Начать с базы
+              </Link>
 
-      <p>
-        Одна из главных ошибок новичков - пытаться учить редкие слова или сразу
-        углубляться в теорию. Намного эффективнее сначала выучить самые нужные
-        слова, которые постоянно встречаются в повседневной речи и в учебных
-        материалах.
-      </p>
+              <Link
+                href="/tests/basic-words-test"
+                className="inline-flex items-center gap-2 rounded-2xl border border-slate-300 bg-white/80 px-5 py-3 text-sm font-medium text-slate-900 hover:bg-white dark:border-slate-700 dark:bg-slate-900/60 dark:text-white dark:hover:bg-slate-900"
+              >
+                Пройти тест по словам
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <ul>
-        <li>частые слова быстрее запоминаются</li>
-        <li>они чаще встречаются в текстах и диалогах</li>
-        <li>с ними проще строить первые фразы</li>
-        <li>они дают ощущение реального прогресса уже в начале</li>
-      </ul>
+      <section className="max-w-6xl mx-auto px-4 pt-8">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 md:p-6">
+          <div className="max-w-3xl">
+            <div className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              Что изучать рядом
+            </div>
+            <SectionTitle className="mt-2">
+              Темы, которые усиливают лексику
+            </SectionTitle>
+            <p className="mt-3 text-slate-600 dark:text-slate-300">
+              Слова лучше запоминаются не по отдельности, а вместе с произношением,
+              простыми фразами, глаголами и короткими упражнениями. Ниже —
+              страницы, которые хорошо работают вместе с этой подборкой.
+            </p>
+          </div>
 
-      <p>
-        Даже 50-100 самых употребительных слов в финском языке уже могут заметно
-        помочь в обучении.
-      </p>
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {relatedCards.map((card) => (
+              <Link
+                key={card.href}
+                href={card.href}
+                className="group rounded-2xl border border-slate-200 bg-slate-50/80 p-4 transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-950/50"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">
+                    {card.icon}
+                  </div>
+                  <div className="font-semibold text-slate-900 dark:text-white">
+                    {card.title}
+                  </div>
+                </div>
 
-      <WordTable title="Базовые приветствия на финском языке" items={greetings} />
+                <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                  {card.description}
+                </p>
 
-      <p>
-        Эти слова стоит выучить в первую очередь. Они короткие, полезные и
-        подходят для ежедневной практики.
-      </p>
+                <div className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-sky-700 dark:text-sky-300">
+                  Открыть страницу
+                  <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
-      <h2>Простые фразы с приветствиями</h2>
+      <section className="max-w-6xl mx-auto px-4 pt-10">
+        <div className="grid gap-8 lg:grid-cols-[1.15fr,0.85fr]">
+          <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 md:p-8">
+            <SectionTitle>Почему стоит начинать с частых слов</SectionTitle>
 
-      <ul>
-        <li>Hei! Mitä kuuluu? - Привет! Как дела?</li>
-        <li>Kiitos paljon. - Большое спасибо.</li>
-        <li>Anteeksi, missä asema on? - Извините, где находится станция?</li>
-        <li>Näkemiin! - До свидания!</li>
-      </ul>
+            <p className="mt-4 text-slate-700 leading-8 dark:text-slate-300">
+              Одна из главных ошибок новичков — пытаться учить редкие слова
+              или сразу уходить в сложную теорию. Намного эффективнее сначала
+              выучить самые нужные слова, которые постоянно встречаются в
+              повседневной речи, диалогах и учебных материалах.
+            </p>
 
-      <WordTable title="Самые нужные финские глаголы" items={commonVerbs} />
+            <ul className="mt-5 space-y-3 text-slate-700 dark:text-slate-300">
+              <li className="flex gap-3">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                <span>частые слова быстрее запоминаются</span>
+              </li>
+              <li className="flex gap-3">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                <span>они чаще встречаются в текстах и диалогах</span>
+              </li>
+              <li className="flex gap-3">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                <span>с ними проще строить первые фразы</span>
+              </li>
+              <li className="flex gap-3">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                <span>они дают ощущение быстрого прогресса</span>
+              </li>
+            </ul>
 
-      <p>
-        Глаголы особенно важны, потому что без них не получится строить даже
-        самые простые предложения. Сначала лучше выучить несколько самых частых
-        форм и регулярно встречать их в коротких примерах.
-      </p>
+            <SectionTitle className="mt-10">
+              Базовые приветствия на финском языке
+            </SectionTitle>
+            <div className="mt-5">
+              <WordCard title="Приветствия и вежливые слова" items={greetings} />
+            </div>
 
-      <h2>Примеры с базовыми финскими глаголами</h2>
+            <div className="mt-6 rounded-2xl border border-slate-200 p-5 dark:border-slate-800">
+              <div className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white">
+                <MessageCircleMore className="h-5 w-5" />
+                Простые фразы с приветствиями
+              </div>
+              <ul className="mt-3 space-y-2 text-slate-700 dark:text-slate-300">
+                <li>Hei! Mitä kuuluu? — Привет! Как дела?</li>
+                <li>Kiitos paljon. — Большое спасибо.</li>
+                <li>Anteeksi, missä asema on? — Извините, где станция?</li>
+                <li>Näkemiin! — До свидания!</li>
+              </ul>
+            </div>
 
-      <ul>
-        <li>Minä olen täällä. - Я здесь.</li>
-        <li>Minä menen kouluun. - Я иду в школу.</li>
-        <li>Hän tulee kotiin. - Он или она приходит домой.</li>
-        <li>Me syömme ruokaa. - Мы едим еду.</li>
-        <li>Minä juon vettä. - Я пью воду.</li>
-      </ul>
+            <SectionTitle className="mt-10">
+              Самые нужные финские глаголы
+            </SectionTitle>
+            <div className="mt-5">
+              <WordCard title="Базовые глаголы" items={commonVerbs} />
+            </div>
 
-      <p>
-        Если хочешь лучше разобраться с этой темой, открой страницу{" "}
-        <a href="/grammar/finnish-verbs">про финские глаголы</a>.
-      </p>
+            <div className="mt-6 rounded-2xl border border-slate-200 p-5 dark:border-slate-800">
+              <div className="text-lg font-bold text-slate-900 dark:text-white">
+                Примеры с глаголами
+              </div>
+              <ul className="mt-3 space-y-2 text-slate-700 dark:text-slate-300">
+                <li>Minä olen täällä. — Я здесь.</li>
+                <li>Minä menen kouluun. — Я иду в школу.</li>
+                <li>Hän tulee kotiin. — Он или она приходит домой.</li>
+                <li>Me syömme ruokaa. — Мы едим еду.</li>
+                <li>Minä juon vettä. — Я пью воду.</li>
+              </ul>
 
-      <WordTable title="Частые существительные на финском языке" items={commonNouns} />
+              <Link
+                href="/grammar/finnish-verbs"
+                className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-sky-700 dark:text-sky-300"
+              >
+                Подробнее про финские глаголы <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
 
-      <h2>Примеры с повседневными существительными</h2>
+            <SectionTitle className="mt-10">
+              Частые существительные на финском языке
+            </SectionTitle>
+            <div className="mt-5">
+              <WordCard title="Повседневные существительные" items={commonNouns} />
+            </div>
 
-      <ul>
-        <li>Tämä on minun koti. - Это мой дом.</li>
-        <li>Koulu on iso. - Школа большая.</li>
-        <li>Minulla on ystävä. - У меня есть друг.</li>
-        <li>Perhe on tärkeä. - Семья важна.</li>
-        <li>Vesi on kylmä. - Вода холодная.</li>
-      </ul>
+            <div className="mt-6 rounded-2xl border border-slate-200 p-5 dark:border-slate-800">
+              <div className="text-lg font-bold text-slate-900 dark:text-white">
+                Примеры с существительными
+              </div>
+              <ul className="mt-3 space-y-2 text-slate-700 dark:text-slate-300">
+                <li>Tämä on minun koti. — Это мой дом.</li>
+                <li>Koulu on iso. — Школа большая.</li>
+                <li>Perhe on tärkeä. — Семья важна.</li>
+                <li>Vesi on kylmä. — Вода холодная.</li>
+              </ul>
+            </div>
 
-      <WordTable title="Вопросительные слова в финском языке" items={questionWords} />
+            <SectionTitle className="mt-10">
+              Вопросительные слова в финском языке
+            </SectionTitle>
+            <div className="mt-5">
+              <WordCard title="Вопросительные слова" items={questionWords} />
+            </div>
 
-      <p>
-        Вопросительные слова встречаются очень часто и помогают быстрее
-        ориентироваться в простых диалогах и фразах.
-      </p>
+            <div className="mt-6 rounded-2xl border border-slate-200 p-5 dark:border-slate-800">
+              <div className="text-lg font-bold text-slate-900 dark:text-white">
+                Примеры с вопросительными словами
+              </div>
+              <ul className="mt-3 space-y-2 text-slate-700 dark:text-slate-300">
+                <li>Mikä tämä on? — Что это?</li>
+                <li>Kuka hän on? — Кто это?</li>
+                <li>Missä sinä asut? — Где ты живёшь?</li>
+                <li>Milloin tunti alkaa? — Когда начинается занятие?</li>
+                <li>Miten menee? — Как дела?</li>
+              </ul>
+            </div>
 
-      <ul>
-        <li>Mikä tämä on? - Что это?</li>
-        <li>Kuka hän on? - Кто это?</li>
-        <li>Missä sinä asut? - Где ты живёшь?</li>
-        <li>Milloin tunti alkaa? - Когда начинается занятие?</li>
-        <li>Miten menee? - Как дела?</li>
-      </ul>
+            <SectionTitle className="mt-10">
+              Как быстрее запоминать финские слова
+            </SectionTitle>
 
-      <WordTable title="Другие полезные слова на каждый день" items={usefulWords} />
+            <ul className="mt-5 space-y-3 text-slate-700 dark:text-slate-300">
+              <li>учи слова по темам, а не по одному</li>
+              <li>сразу используй новое слово в короткой фразе</li>
+              <li>повторяй лексику каждый день по 10-15 минут</li>
+              <li>читай слова вслух, чтобы связать написание и звучание</li>
+              <li>чаще возвращайся к базовой лексике, а не к редким словам</li>
+            </ul>
 
-      <h2>Ещё слова, которые полезно знать новичку</h2>
+            <SectionTitle className="mt-10">
+              Частые ошибки при изучении слов
+            </SectionTitle>
 
-      <p>
-        После базового набора приветствий, глаголов и существительных можно
-        постепенно расширять словарный запас. Ниже - ещё несколько полезных
-        слов, которые часто встречаются в учебных материалах и повседневной речи.
-      </p>
+            <ul className="mt-5 space-y-3 text-slate-700 dark:text-slate-300">
+              <li>пытаться учить слишком много слов за раз</li>
+              <li>запоминать перевод без примеров</li>
+              <li>игнорировать произношение</li>
+              <li>учить редкие слова раньше базовых</li>
+            </ul>
 
-      <ul>
-        <li>yksi - один</li>
-        <li>kaksi - два</li>
-        <li>kolme - три</li>
-        <li>mies - мужчина</li>
-        <li>nainen - женщина</li>
-        <li>lapsi - ребёнок</li>
-        <li>kauppa - магазин</li>
-        <li>kaupunki - город</li>
-        <li>auto - машина</li>
-        <li>bussi - автобус</li>
-        <li>juna - поезд</li>
-        <li>kirja - книга</li>
-        <li>puhelin - телефон</li>
-        <li>uusi - новый</li>
-        <li>vanha - старый</li>
-        <li>kaunis - красивый</li>
-        <li>helppo - лёгкий</li>
-        <li>vaikea - трудный</li>
-        <li>pitkä - длинный</li>
-        <li>lyhyt - короткий</li>
-      </ul>
+            <p className="mt-5 text-slate-700 leading-8 dark:text-slate-300">
+              Намного полезнее хорошо знать 50-100 самых частых слов, чем
+              поверхностно помнить сотни редких.
+            </p>
+          </article>
 
-      <p>
-        Дальше можно расширять лексику по темам, например через страницы{" "}
-        <a href="/dictionary/food">про еду на финском языке</a> и{" "}
-        <a href="/dictionary/family">про семью на финском языке</a>.
-      </p>
+          <aside className="space-y-6">
+            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+              <div className="text-sm uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Быстрый маршрут
+              </div>
 
-      <h2>Как быстрее запоминать финские слова</h2>
+              <div className="mt-3 flex flex-col gap-3">
+                <Link
+                  href="/lessons/finnish-for-beginners"
+                  className="rounded-2xl border border-slate-200 px-4 py-3 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-950/50"
+                >
+                  Финский для начинающих
+                </Link>
 
-      <ul>
-        <li>учи слова не по одному, а по темам</li>
-        <li>сразу используй новое слово в короткой фразе</li>
-        <li>повторяй лексику каждый день по 10-15 минут</li>
-        <li>читай слова вслух, чтобы связать написание и произношение</li>
-        <li>чаще возвращайся к базовой лексике, а не гонись за редкими словами</li>
-      </ul>
+                <Link
+                  href="/lessons/finnish-pronunciation"
+                  className="rounded-2xl border border-slate-200 px-4 py-3 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-950/50"
+                >
+                  Финское произношение
+                </Link>
 
-      <p>
-        Финский язык запоминается заметно легче, если соединять новые слова с
-        чтением, произношением и короткими примерами.
-      </p>
+                <Link
+                  href="/grammar/finnish-verbs"
+                  className="rounded-2xl border border-slate-200 px-4 py-3 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-950/50"
+                >
+                  Финские глаголы
+                </Link>
 
-      <h2>Частые ошибки при изучении слов</h2>
+                <Link
+                  href="/grammar/finnish-cases"
+                  className="rounded-2xl border border-slate-200 px-4 py-3 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-950/50"
+                >
+                  Падежи финского языка
+                </Link>
 
-      <ul>
-        <li>пытаться учить слишком много слов за раз</li>
-        <li>запоминать перевод без примеров</li>
-        <li>игнорировать произношение</li>
-        <li>учить редкие слова раньше базовых</li>
-      </ul>
+                <Link
+                  href="/tests/basic-words-test"
+                  className="rounded-2xl border border-slate-200 px-4 py-3 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-950/50"
+                >
+                  Тест на базовые слова
+                </Link>
+              </div>
+            </div>
 
-      <p>
-        Намного полезнее хорошо знать 50-100 самых частых слов, чем поверхностно
-        помнить сотни редких.
-      </p>
+            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+              <div className="text-lg font-bold text-slate-900 dark:text-white">
+                Что учить после слов
+              </div>
 
-      <h2>Что учить после базовой лексики</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                Когда базовая лексика уже знакома, полезно перейти к произношению,
+                глаголам и первым грамматическим темам. Так слова начинают
+                работать внутри реальных фраз и предложений.
+              </p>
 
-      <p>
-        Когда ты освоишь самые употребительные слова, дальше стоит перейти к
-        произношению, глаголам и основам грамматики. Это поможет быстрее
-        перейти от отдельных слов к полноценным фразам и предложениям.
-      </p>
+              <div className="mt-4 flex flex-col gap-3">
+                <Link
+                  href="/grammar/finnish-verbs"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-sky-700 dark:text-sky-300"
+                >
+                  Разобрать финские глаголы <ArrowRight className="h-4 w-4" />
+                </Link>
 
-      <ul>
-        <li>
-          <a href="/lessons/finnish-for-beginners">
-            Финский язык для начинающих
-          </a>
-        </li>
-        <li>
-          <a href="/lessons/finnish-pronunciation">
-            Финское произношение
-          </a>
-        </li>
-        <li>
-          <a href="/grammar/finnish-verbs">Финские глаголы</a>
-        </li>
-        <li>
-          <a href="/grammar/finnish-cases">Падежи финского языка</a>
-        </li>
-        <li>
-          <a href="/tests/basic-words-test">Тест на базовые финские слова</a>
-        </li>
-      </ul>
+                <Link
+                  href="/lessons/finnish-pronunciation"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-sky-700 dark:text-sky-300"
+                >
+                  Перейти к произношению <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
 
-      <h2>FAQ</h2>
+            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+              <div className="text-lg font-bold text-slate-900 dark:text-white">
+                FAQ
+              </div>
 
-      <h3>Сколько слов нужно знать для старта в финском языке?</h3>
-      <p>
-        Даже 50-100 самых употребительных слов уже помогают понимать простые
-        фразы и строить базовые предложения. Важно не количество, а регулярное
-        повторение и понимание контекста.
-      </p>
+              <div className="mt-4 space-y-4 text-sm">
+                <div>
+                  <div className="font-semibold text-slate-900 dark:text-white">
+                    Сколько слов нужно знать для старта?
+                  </div>
+                  <p className="mt-1 text-slate-600 dark:text-slate-300">
+                    Даже 50-100 самых употребительных слов уже помогают понимать
+                    простые фразы и строить базовые предложения.
+                  </p>
+                </div>
 
-      <h3>Какие финские слова учить в первую очередь?</h3>
-      <p>
-        Лучше всего начинать с приветствий, вопросительных слов, базовых
-        глаголов, простых существительных и самых частых слов из повседневной
-        речи.
-      </p>
+                <div>
+                  <div className="font-semibold text-slate-900 dark:text-white">
+                    Какие слова учить в первую очередь?
+                  </div>
+                  <p className="mt-1 text-slate-600 dark:text-slate-300">
+                    Приветствия, вопросительные слова, базовые глаголы,
+                    простые существительные и повседневные выражения.
+                  </p>
+                </div>
 
-      <h3>Что лучше: сначала учить слова или грамматику?</h3>
-      <p>
-        На старте полезнее сначала выучить базовые слова и произношение, а уже
-        потом постепенно добавлять грамматику. Так язык начинает восприниматься
-        намного легче.
-      </p>
-
-      <h3>Как быстрее запоминать слова на финском языке?</h3>
-      <p>
-        Самый рабочий способ - учить слова по темам, использовать их в коротких
-        фразах, читать вслух и регулярно повторять. Короткая ежедневная практика
-        обычно работает лучше редких длинных занятий.
-      </p>
-    </div>
+                <div>
+                  <div className="font-semibold text-slate-900 dark:text-white">
+                    Что лучше: слова или грамматика?
+                  </div>
+                  <p className="mt-1 text-slate-600 dark:text-slate-300">
+                    На старте полезнее сначала выучить базовые слова и
+                    произношение, а затем постепенно добавлять грамматику.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
   );
 }
