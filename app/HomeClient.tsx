@@ -12,6 +12,8 @@ import {
   Languages,
   GraduationCap,
   ListChecks,
+  LibraryBig,
+  PenTool,
 } from "lucide-react";
 
 import Header from "../components/Header";
@@ -100,9 +102,52 @@ function Section({
   );
 }
 
-export default function HomeClient() {
-  /* ------ Featured / recommended data ------ */
+const seoTiles = [
+  {
+    href: "/lessons/finnish-for-beginners",
+    title: "Финский для начинающих",
+    text: "Пошаговый старт с нуля: что учить сначала, как не перегрузиться и с чего реально начать.",
+    icon: <GraduationCap className="h-5 w-5" />,
+  },
+  {
+    href: "/lessons/finnish-pronunciation",
+    title: "Финское произношение",
+    text: "Правила чтения, долгие и краткие звуки, ударение и типичные ошибки новичков.",
+    icon: <PenTool className="h-5 w-5" />,
+  },
+  {
+    href: "/lessons/finnish-alphabet",
+    title: "Финский алфавит",
+    text: "Буквы, звуки, особенности ä, ö и y, а также примеры слов для практики.",
+    icon: <LibraryBig className="h-5 w-5" />,
+  },
+  {
+    href: "/grammar/finnish-cases",
+    title: "Падежи финского языка",
+    text: "Понятное объяснение основных падежей, таблица форм и примеры для начинающих.",
+    icon: <BookOpen className="h-5 w-5" />,
+  },
+  {
+    href: "/grammar/finnish-verbs",
+    title: "Финские глаголы",
+    text: "Самые нужные глаголы, базовые формы, простые предложения и стартовое спряжение.",
+    icon: <BookOpen className="h-5 w-5" />,
+  },
+  {
+    href: "/grammar/finnish-vowel-harmony",
+    title: "Гармония гласных",
+    text: "Одно из самых важных правил финского языка, которое помогает понимать окончания.",
+    icon: <BookOpen className="h-5 w-5" />,
+  },
+  {
+    href: "/dictionary/common-words",
+    title: "Частые слова на финском",
+    text: "Базовая лексика для старта: приветствия, глаголы, существительные и полезные выражения.",
+    icon: <Languages className="h-5 w-5" />,
+  },
+];
 
+export default function HomeClient() {
   const [favGoal, setFavGoal] = useState<number>(() => {
     try {
       return Number(localStorage.getItem(FAV_GOAL_KEY)) || 20;
@@ -135,8 +180,6 @@ export default function HomeClient() {
     () => pickFeatured(vocabWithPics, FEATURED_VOCAB_IDS, 3),
     [vocabWithPics]
   );
-
-  /* ------ local sync ------ */
 
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
@@ -231,8 +274,6 @@ export default function HomeClient() {
     };
   }, []);
 
-  /* ------ Daily micro-quiz ------ */
-
   const quizPool = useMemo(
     () => (vocab as any[]).filter((v) => v.fi && v.ru).slice(0, 500),
     []
@@ -291,8 +332,6 @@ export default function HomeClient() {
     setQ(makeQuestion());
   };
 
-  /* ------ Recommended grammar by level ------ */
-
   const tagByLevel: Record<string, string> = {
     A0: "алфавит",
     A1: "окончания",
@@ -312,8 +351,6 @@ export default function HomeClient() {
     return byTag.length ? byTag : featuredGrammar;
   }, [profile, featuredGrammar]);
 
-  /* ------ Vocab modal ------ */
-
   const [openVocab, setOpenVocab] = useState<any | null>(null);
 
   const onOpenVocab = useCallback((e: React.MouseEvent, item: any) => {
@@ -326,7 +363,6 @@ export default function HomeClient() {
       <Header />
 
       <main>
-        {/* HERO */}
         <section className="relative isolate overflow-hidden">
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute -top-16 -left-16 h-72 w-72 rounded-full bg-sky-200/40 blur-3xl dark:bg-sky-400/10" />
@@ -404,7 +440,50 @@ export default function HomeClient() {
 
         <QuickLinks />
 
-        {/* CONTINUE */}
+        <Section className="pt-8">
+          <div className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 md:p-6">
+            <div className="max-w-3xl">
+              <div className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                SEO-разделы и быстрый старт
+              </div>
+              <h2 className="mt-2 text-2xl md:text-3xl font-extrabold tracking-tight">
+                Что изучать на MaaFinn
+              </h2>
+              <p className="mt-3 text-slate-600 dark:text-slate-300">
+                Если ты только начинаешь учить финский, начни с базовых страниц:
+                алфавит, произношение, частые слова, глаголы и падежи. Ниже —
+                ключевые материалы, которые уже встроены в структуру сайта.
+              </p>
+            </div>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {seoTiles.map((tile) => (
+                <Link
+                  key={tile.href}
+                  href={tile.href}
+                  className="group rounded-2xl border border-slate-200 bg-white/80 p-4 transition hover:shadow-md hover:-translate-y-0.5 dark:border-slate-800 dark:bg-slate-950/40"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300">
+                      {tile.icon}
+                    </div>
+                    <div className="font-semibold">{tile.title}</div>
+                  </div>
+
+                  <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                    {tile.text}
+                  </p>
+
+                  <div className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-sky-700 dark:text-sky-300">
+                    Открыть страницу
+                    <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </Section>
+
         {(resumeLessonId || lastQuiz || favCount > 0) && (
           <Section className="pt-4">
             <div className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
@@ -458,7 +537,6 @@ export default function HomeClient() {
           </Section>
         )}
 
-        {/* MICRO QUIZ */}
         <Section className="pt-4 pb-8">
           <div className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 md:p-6">
             <div className="flex items-start gap-4">
@@ -532,7 +610,6 @@ export default function HomeClient() {
           </div>
         </Section>
 
-        {/* GRAMMAR */}
         <Section title="Карточки грамматики" className="py-2">
           <div className="grid auto-rows-fr gap-6 md:grid-cols-3">
             {recommendedGrammar.map((card: any) => (
@@ -612,7 +689,6 @@ export default function HomeClient() {
           </div>
         </Section>
 
-        {/* VOCAB */}
         <Section title="Карточки словаря" className="pt-6 pb-8">
           <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
             {featuredVocab.map((w: any) => (
@@ -676,7 +752,6 @@ export default function HomeClient() {
           </div>
         </Section>
 
-        {/* PROGRESS */}
         <Section className="pb-10">
           <div className="grid auto-rows-fr gap-4 md:grid-cols-3">
             <div className="relative flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
@@ -825,7 +900,6 @@ export default function HomeClient() {
 
       <Footer />
 
-      {/* MODAL */}
       {openVocab && (
         <div className="fixed inset-0 z-50">
           <div
