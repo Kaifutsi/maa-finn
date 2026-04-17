@@ -1,331 +1,237 @@
-export const metadata = {
-  title: "Гармония гласных в финском языке: простое объяснение для начинающих",
+import type { Metadata } from "next";
+import Link from "next/link";
+import {
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  Languages,
+  GraduationCap,
+  PenTool,
+  Waves,
+} from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Гармония гласных в финском языке: простое объяснение и примеры",
   description:
-    "Разберите гармонию гласных в финском языке с примерами. Понятные правила, группы гласных, окончания слов и частые ошибки для начинающих.",
+    "Разберитесь, что такое гармония гласных в финском языке. Простое объяснение, примеры слов, правила ä, ö, y и как не делать ошибки.",
 };
+
+type RelatedCard = {
+  href: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+};
+
+const relatedCards: RelatedCard[] = [
+  {
+    href: "/lessons/finnish-alphabet",
+    title: "Финский алфавит",
+    description: "Перед гармонией важно понимать гласные буквы и их звучание.",
+    icon: <BookOpen className="h-5 w-5" />,
+  },
+  {
+    href: "/grammar/finnish-verbs",
+    title: "Финские глаголы",
+    description: "Гармония гласных влияет на окончания глаголов.",
+    icon: <PenTool className="h-5 w-5" />,
+  },
+  {
+    href: "/dictionary/common-words",
+    title: "Частые слова",
+    description: "Лучший способ понять гармонию — смотреть на реальные слова.",
+    icon: <Languages className="h-5 w-5" />,
+  },
+  {
+    href: "/lessons/finnish-for-beginners",
+    title: "Финский для начинающих",
+    description: "Полная база для старта и понимания структуры языка.",
+    icon: <GraduationCap className="h-5 w-5" />,
+  },
+];
+
+const backVowels = ["a", "o", "u"];
+const frontVowels = ["ä", "ö", "y"];
+const neutralVowels = ["e", "i"];
+
+function SectionTitle({
+  children,
+  className = "",
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <h2 className={`text-2xl md:text-3xl font-extrabold tracking-tight ${className}`}>
+      {children}
+    </h2>
+  );
+}
 
 export default function Page() {
   return (
-    <div className="prose max-w-3xl mx-auto py-10">
-      <h1>Гармония гласных в финском языке: простое объяснение для начинающих</h1>
+    <main className="pb-14">
+      {/* HERO */}
+      <section className="relative overflow-hidden border-b border-slate-200 bg-[radial-gradient(60%_40%_at_20%_-10%,#dff0ff_0%,transparent_70%),radial-gradient(50%_30%_at_100%_0%,#eef4ff_0%,transparent_60%)] dark:border-slate-800 dark:bg-slate-950">
+        <div className="max-w-6xl mx-auto px-4 py-10 md:py-14">
+          <div className="max-w-4xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs uppercase tracking-widest text-sky-700 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:text-sky-300">
+              <Waves className="h-3.5 w-3.5" />
+              Базовая грамматика финского
+            </div>
 
-      <p>
-        Гармония гласных - одна из базовых особенностей финского языка. На
-        старте она может показаться странной, но на практике это довольно
-        логичное правило, которое помогает понять, почему окончания в словах
-        выглядят именно так, а не иначе.
-      </p>
+            <h1 className="mt-4 text-4xl md:text-6xl font-extrabold leading-tight text-slate-950 dark:text-white">
+              Гармония гласных:{" "}
+              <span className="bg-gradient-to-r from-sky-600 to-indigo-600 bg-clip-text text-transparent">
+                как работают окончания в финском языке
+              </span>
+            </h1>
 
-      <p>
-        Если объяснять совсем просто, в финском языке разные группы гласных
-        обычно не смешиваются внутри обычного слова. Из-за этого одно и то же
-        окончание может иметь разный вид в зависимости от того, какие гласные
-        уже есть в слове.
-      </p>
+            <p className="mt-5 max-w-3xl text-base md:text-lg text-slate-600 dark:text-slate-300 leading-8">
+              Гармония гласных — одна из самых важных и одновременно простых
+              тем в финском языке. Если понять этот принцип, становится
+              намного легче разбирать слова, окончания и грамматику в целом.
+            </p>
 
-      <p>
-        На этой странице разберём, что такое гармония гласных в финском языке,
-        какие гласные относятся к разным группам, как это влияет на окончания и
-        как быстрее привыкнуть к этой теме через понятные примеры.
-      </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link
+                href="/dictionary/common-words"
+                className="px-5 py-3 rounded-2xl bg-sky-600 text-white hover:bg-sky-700 transition"
+              >
+                Смотреть примеры слов
+              </Link>
 
-      <h2>Что такое гармония гласных в финском языке</h2>
+              <Link
+                href="/grammar/finnish-verbs"
+                className="px-5 py-3 rounded-2xl border border-slate-300 dark:border-slate-700"
+              >
+                Перейти к глаголам
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <p>
-        Гармония гласных - это правило, по которому в слове и его окончаниях
-        обычно сочетаются гласные одной группы. Именно поэтому в финском языке
-        ты часто видишь похожие модели в окончаниях и быстро начинаешь замечать
-        повторяющиеся схемы.
-      </p>
+      {/* RELATED */}
+      <section className="max-w-6xl mx-auto px-4 pt-8">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900/60">
+          <SectionTitle>Связанные темы</SectionTitle>
 
-      <p>
-        Например, одно окончание может выглядеть по-разному:
-      </p>
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {relatedCards.map((card) => (
+              <Link
+                key={card.href}
+                href={card.href}
+                className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 hover:shadow-md transition"
+              >
+                <div className="flex items-center gap-3">
+                  {card.icon}
+                  <div className="font-semibold">{card.title}</div>
+                </div>
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                  {card.description}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
-      <ul>
-        <li>talossa - в доме</li>
-        <li>kädessä - в руке</li>
-      </ul>
+      {/* CONTENT */}
+      <section className="max-w-6xl mx-auto px-4 pt-10">
+        <div className="grid lg:grid-cols-[1.2fr,0.8fr] gap-8">
+          <article className="rounded-3xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900/60">
 
-      <p>
-        Смысл у форм похожий, но одна использует <strong>o/a</strong>, а другая{" "}
-        <strong>ä</strong>. Это как раз связано с гармонией гласных.
-      </p>
+            <SectionTitle>Что такое гармония гласных</SectionTitle>
 
-      <h2>Какие гласные есть в финском языке</h2>
+            <p className="mt-4 text-slate-700 dark:text-slate-300 leading-8">
+              В финском языке слова строятся так, чтобы гласные внутри слова
+              сочетались друг с другом. Это правило называется гармонией
+              гласных. Оно влияет на окончания слов, формы глаголов и падежи.
+            </p>
 
-      <p>
-        Чтобы понять гармонию гласных, сначала нужно разделить финские гласные
-        на три группы.
-      </p>
+            <SectionTitle className="mt-10">3 группы гласных</SectionTitle>
 
-      <h3>Задние гласные</h3>
-      <ul>
-        <li>a</li>
-        <li>o</li>
-        <li>u</li>
-      </ul>
+            <div className="mt-5 space-y-4">
 
-      <h3>Передние гласные</h3>
-      <ul>
-        <li>ä</li>
-        <li>ö</li>
-        <li>y</li>
-      </ul>
+              <div className="p-4 rounded-2xl border">
+                <b>Задние гласные</b>: {backVowels.join(", ")}
+                <p className="mt-2 text-sm">Пример: talo (дом)</p>
+              </div>
 
-      <h3>Нейтральные гласные</h3>
-      <ul>
-        <li>e</li>
-        <li>i</li>
-      </ul>
+              <div className="p-4 rounded-2xl border">
+                <b>Передние гласные</b>: {frontVowels.join(", ")}
+                <p className="mt-2 text-sm">Пример: kylä (деревня)</p>
+              </div>
 
-      <p>
-        Именно это деление и лежит в основе правила гармонии гласных в финском
-        языке.
-      </p>
+              <div className="p-4 rounded-2xl border">
+                <b>Нейтральные</b>: {neutralVowels.join(", ")}
+                <p className="mt-2 text-sm">Могут использоваться в любых словах</p>
+              </div>
 
-      <h2>Как работает гармония гласных</h2>
+            </div>
 
-      <p>
-        Главное правило выглядит так: если в слове есть задние гласные, то и
-        окончание обычно будет с задним вариантом. Если в слове передние
-        гласные, окончание будет с передним вариантом.
-      </p>
+            <SectionTitle className="mt-10">Главное правило</SectionTitle>
 
-      <p>Сравни:</p>
+            <p className="mt-4 text-slate-700 dark:text-slate-300 leading-8">
+              В одном слове обычно используются либо задние гласные (a, o, u),
+              либо передние (ä, ö, y). Они не смешиваются.
+            </p>
 
-      <ul>
-        <li>talo + ssa = talossa</li>
-        <li>kylä + ssä = kylässä</li>
-      </ul>
+            <ul className="mt-5 space-y-2">
+              <li>talo → talossa</li>
+              <li>kylä → kylässä</li>
+            </ul>
 
-      <p>
-        В первом слове есть <strong>a</strong> и <strong>o</strong>, поэтому
-        окончание идёт в варианте <strong>-ssa</strong>. Во втором есть{" "}
-        <strong>ä</strong>, поэтому появляется форма <strong>-ssä</strong>.
-      </p>
+            <SectionTitle className="mt-10">Почему это важно</SectionTitle>
 
-      <h2>Почему это важно для окончаний</h2>
+            <ul className="mt-5 space-y-3">
+              <li className="flex gap-2"><CheckCircle2 /> влияет на окончания</li>
+              <li className="flex gap-2"><CheckCircle2 /> помогает читать слова</li>
+              <li className="flex gap-2"><CheckCircle2 /> упрощает грамматику</li>
+            </ul>
 
-      <p>
-        Гармония гласных особенно важна в падежах, послелогах, некоторых
-        суффиксах и словообразовательных моделях. Именно из-за неё в финском
-        языке часто встречаются пары вроде:
-      </p>
+            <SectionTitle className="mt-10">Частые ошибки</SectionTitle>
 
-      <ul>
-        <li>-ssa / -ssä</li>
-        <li>-sta / -stä</li>
-        <li>-lla / -llä</li>
-        <li>-na / -nä</li>
-      </ul>
+            <ul className="mt-5 space-y-2">
+              <li>смешивание ä и a в одном слове</li>
+              <li>игнорирование правил окончаний</li>
+              <li>запоминание без примеров</li>
+            </ul>
 
-      <p>
-        Если запомнить сам принцип, то многие окончания уже не придётся учить
-        как отдельные хаотичные формы - они начинают складываться в понятную
-        систему.
-      </p>
+          </article>
 
-      <h2>Примеры гармонии гласных в финском языке</h2>
+          {/* SIDEBAR */}
+          <aside className="space-y-6">
 
-      <table>
-        <thead>
-          <tr>
-            <th>Слово</th>
-            <th>Форма</th>
-            <th>Перевод</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>talo</td>
-            <td>talossa</td>
-            <td>в доме</td>
-          </tr>
-          <tr>
-            <td>koulu</td>
-            <td>koulussa</td>
-            <td>в школе</td>
-          </tr>
-          <tr>
-            <td>kylä</td>
-            <td>kylässä</td>
-            <td>в деревне</td>
-          </tr>
-          <tr>
-            <td>metsä</td>
-            <td>metsässä</td>
-            <td>в лесу</td>
-          </tr>
-          <tr>
-            <td>työ</td>
-            <td>työssä</td>
-            <td>в работе / на работе</td>
-          </tr>
-        </tbody>
-      </table>
+            <div className="p-5 rounded-3xl border">
+              <b>Быстрый маршрут</b>
+              <div className="mt-3 flex flex-col gap-2">
+                <Link href="/lessons/finnish-alphabet">Алфавит</Link>
+                <Link href="/grammar/finnish-verbs">Глаголы</Link>
+                <Link href="/dictionary/common-words">Слова</Link>
+              </div>
+            </div>
 
-      <p>
-        На этих примерах хорошо видно, как слово само подсказывает нужный
-        вариант окончания.
-      </p>
+            <div className="p-5 rounded-3xl border">
+              <b>FAQ</b>
 
-      <h2>Что делать с буквами e и i</h2>
+              <div className="mt-4 text-sm space-y-4">
+                <div>
+                  <b>Сложная ли тема?</b>
+                  <p>Нет, это одно из самых простых правил финского языка.</p>
+                </div>
 
-      <p>
-        Буквы <strong>e</strong> и <strong>i</strong> считаются нейтральными.
-        Это значит, что сами по себе они не задают «задний» или «передний»
-        вариант так явно, как <strong>a</strong> или <strong>ä</strong>.
-      </p>
+                <div>
+                  <b>Нужно ли учить сразу?</b>
+                  <p>Да, это сильно упрощает дальнейшее обучение.</p>
+                </div>
+              </div>
+            </div>
 
-      <p>
-        Если слово содержит только <strong>e</strong> и <strong>i</strong>, то
-        в стандартной форме окончания обычно берут передний вариант.
-      </p>
-
-      <ul>
-        <li>meri - meressä</li>
-        <li>vesi - vedessä</li>
-      </ul>
-
-      <p>
-        Это важно запомнить, потому что именно нейтральные гласные часто
-        вызывают вопросы у начинающих.
-      </p>
-
-      <h2>Простая схема для запоминания</h2>
-
-      <p>
-        Чтобы не путаться, можно держать в голове очень короткое правило:
-      </p>
-
-      <ul>
-        <li>если в слове есть a, o, u - чаще жди окончания с a</li>
-        <li>если в слове есть ä, ö, y - чаще жди окончания с ä</li>
-        <li>если в слове только e и i - обычно используется передний вариант</li>
-      </ul>
-
-      <p>
-        Это не заменяет всю грамматику, но для старта работает очень хорошо и
-        помогает не теряться в новых словах.
-      </p>
-
-      <h2>Гармония гласных и падежи</h2>
-
-      <p>
-        Особенно сильно это правило чувствуется в падежных окончаниях. Например:
-      </p>
-
-      <ul>
-        <li>talossa - в доме</li>
-        <li>talosta - из дома</li>
-        <li>kylässä - в деревне</li>
-        <li>kylästä - из деревни</li>
-      </ul>
-
-      <p>
-        Поэтому тема гармонии гласных напрямую связана с падежами и помогает
-        легче понимать их формы.
-      </p>
-
-      <p>
-        <a href="/grammar/finnish-cases">Открыть страницу про падежи финского языка</a>
-      </p>
-
-      <h2>Почему гармония гласных полезна, а не мешает</h2>
-
-      <p>
-        Сначала кажется, что это лишнее усложнение. Но на деле гармония гласных
-        делает язык более предсказуемым. Она помогает заранее угадывать, какое
-        окончание подходит слову, и быстрее замечать закономерности.
-      </p>
-
-      <p>
-        То есть это не просто правило «ради правила», а реальный инструмент,
-        который облегчает чтение и понимание форм.
-      </p>
-
-      <h2>Частые ошибки начинающих</h2>
-
-      <ul>
-        <li>не разделять гласные на группы</li>
-        <li>учить окончания механически, без понимания системы</li>
-        <li>путать слова с передними и задними гласными</li>
-        <li>игнорировать нейтральные гласные e и i</li>
-      </ul>
-
-      <p>
-        Самая частая проблема - пытаться запомнить форму целиком, не замечая,
-        какие гласные стоят в самом слове.
-      </p>
-
-      <h2>Как быстрее выучить гармонию гласных</h2>
-
-      <ol>
-        <li>раздели все гласные на 3 группы</li>
-        <li>бери короткие слова и смотри, какие буквы в них есть</li>
-        <li>сравнивай пары: talossa и kylässä, talosta и kylästä</li>
-        <li>повторяй слова вслух вместе с окончаниями</li>
-        <li>возвращайся к теме через падежи и простые примеры</li>
-      </ol>
-
-      <p>
-        Намного полезнее разобрать 10 понятных слов с окончаниями, чем читать
-        длинную теорию без практики.
-      </p>
-
-      <h2>Что изучать после гармонии гласных</h2>
-
-      <p>
-        После этой темы логично перейти к падежам, базовым глаголам и общему
-        курсу для начинающих. Так гармония гласных перестаёт быть абстрактным
-        правилом и начинает работать внутри живого языка.
-      </p>
-
-      <ul>
-        <li>
-          <a href="/grammar/finnish-cases">Падежи финского языка</a>
-        </li>
-        <li>
-          <a href="/grammar/finnish-verbs">Финские глаголы</a>
-        </li>
-        <li>
-          <a href="/lessons/finnish-pronunciation">
-            Финское произношение
-          </a>
-        </li>
-        <li>
-          <a href="/lessons/finnish-for-beginners">
-            Финский язык для начинающих
-          </a>
-        </li>
-      </ul>
-
-      <h2>FAQ</h2>
-
-      <h3>Что такое гармония гласных в финском языке?</h3>
-      <p>
-        Это правило, по которому окончания в словах подстраиваются под тип
-        гласных в основе слова. Из-за этого одни и те же суффиксы могут
-        выглядеть по-разному.
-      </p>
-
-      <h3>Какие гласные в финском языке относятся к разным группам?</h3>
-      <p>
-        Задние гласные - a, o, u. Передние - ä, ö, y. Нейтральные - e и i.
-      </p>
-
-      <h3>Почему в одном слове -ssa, а в другом -ssä?</h3>
-      <p>
-        Потому что форма окончания зависит от гласных в слове. Если слово
-        содержит передние гласные, обычно используется вариант с ä.
-      </p>
-
-      <h3>Сложно ли выучить гармонию гласных?</h3>
-      <p>
-        В начале она кажется непривычной, но после нескольких десятков примеров
-        правило становится достаточно понятным и даже удобным.
-      </p>
-    </div>
+          </aside>
+        </div>
+      </section>
+    </main>
   );
 }
