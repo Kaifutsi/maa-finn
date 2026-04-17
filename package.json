@@ -10,7 +10,8 @@
     "sitemap": "next-sitemap --config next-sitemap.config.cjs",
     "preview": "npx serve out",
     "lint": "next lint",
-    "types:check": "tsc -p tsconfig.json --noEmit"
+    "types:check": "tsc -p tsconfig.json --noEmit",
+    "types:check:worker": "tsc -p worker/tsconfig.json --noEmit"
   },
   "dependencies": {
     "lucide-react": "^0.544.0",
@@ -21,6 +22,7 @@
     "react-icons": "^5.5.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260417.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
