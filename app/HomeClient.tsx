@@ -377,16 +377,16 @@ export default function HomeClient() {
                   Тренажёр, словарь и ИИ-помощник
                 </div>
 
-                <h1 className="mt-4 max-w-3xl text-4xl font-extrabold leading-tight md:text-6xl">
+                <h1 className="mt-4 max-w-4xl text-4xl font-extrabold leading-tight md:text-6xl">
                   Учите финский язык{" "}
                   <span className="bg-gradient-to-r from-sky-600 to-indigo-600 bg-clip-text text-transparent">
-                    понятно и регулярно
+                    с нуля, по темам и на практике
                   </span>
                 </h1>
 
                 <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300 md:text-lg">
-                  MaaFinn — это удобная платформа для изучения финского языка:
-                  грамматика, словарь, карточки, тесты, произношение и быстрый
+                  MaaFinn помогает учить финский без перегруза: уроки для начинающих,
+                  грамматика с примерами, словарь, тесты, тренировка произношения и быстрый
                   ИИ-помощник в одном месте.
                 </p>
 
@@ -439,6 +439,86 @@ export default function HomeClient() {
         </section>
 
         <QuickLinks />
+
+        <Section className="pt-8">
+          <div className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 md:p-6">
+            <div className="max-w-3xl">
+              <div className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Начать с главного
+              </div>
+              <h2 className="mt-2 text-2xl md:text-3xl font-extrabold tracking-tight">
+                Полезные материалы для старта
+              </h2>
+              <p className="mt-3 text-slate-600 dark:text-slate-300">
+                Если ты только начинаешь учить финский язык, начни с этих страниц.
+                Здесь собрана база: алфавит, произношение, частые слова, глаголы,
+                падежи и основные правила.
+              </p>
+            </div>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              <Link
+                href="/lessons/finnish-for-beginners"
+                className="group rounded-2xl border border-slate-200 bg-white p-4 transition hover:shadow-md dark:border-slate-800 dark:bg-slate-950/40"
+              >
+                <div className="font-semibold">Финский для начинающих</div>
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                  С чего начать, что учить первым и как выстроить обучение без перегруза.
+                </p>
+              </Link>
+
+              <Link
+                href="/lessons/finnish-pronunciation"
+                className="group rounded-2xl border border-slate-200 bg-white p-4 transition hover:shadow-md dark:border-slate-800 dark:bg-slate-950/40"
+              >
+                <div className="font-semibold">Финское произношение</div>
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                  Правила чтения, ударение, долгие и краткие звуки, примеры слов.
+                </p>
+              </Link>
+
+              <Link
+                href="/lessons/finnish-alphabet"
+                className="group rounded-2xl border border-slate-200 bg-white p-4 transition hover:shadow-md dark:border-slate-800 dark:bg-slate-950/40"
+              >
+                <div className="font-semibold">Финский алфавит</div>
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                  Буквы, звуки, особенности ä, ö и y, базовые примеры.
+                </p>
+              </Link>
+
+              <Link
+                href="/grammar/finnish-cases"
+                className="group rounded-2xl border border-slate-200 bg-white p-4 transition hover:shadow-md dark:border-slate-800 dark:bg-slate-950/40"
+              >
+                <div className="font-semibold">Падежи финского языка</div>
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                  Простое объяснение падежей, таблица форм и понятные примеры.
+                </p>
+              </Link>
+
+              <Link
+                href="/grammar/finnish-verbs"
+                className="group rounded-2xl border border-slate-200 bg-white p-4 transition hover:shadow-md dark:border-slate-800 dark:bg-slate-950/40"
+              >
+                <div className="font-semibold">Финские глаголы</div>
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                  Самые нужные глаголы, базовые формы и простые предложения.
+                </p>
+              </Link>
+
+              <Link
+                href="/dictionary/common-words"
+                className="group rounded-2xl border border-slate-200 bg-white p-4 transition hover:shadow-md dark:border-slate-800 dark:bg-slate-950/40"
+              >
+                <div className="font-semibold">Частые слова на финском</div>
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                  Базовая лексика для начинающих: приветствия, глаголы и нужные слова.
+                </p>
+              </Link>
+            </div>
+          </div>
+        </Section>
 
         <Section className="pt-8">
           <div className="rounded-3xl border border-slate-200 bg-white/80 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 md:p-6">
