@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import "./globals.css";
 import YandexMetrika from "@/components/YandexMetrika";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -143,7 +144,10 @@ export default function RootLayout({
             </div>
           }
         >
-          <div className="min-h-screen">{children}</div>
+          <div className="min-h-screen">
+            <Breadcrumbs />
+            {children}
+          </div>
           <YandexMetrika />
         </Suspense>
       </body>
